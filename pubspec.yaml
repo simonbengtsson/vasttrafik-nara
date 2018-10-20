@@ -1,0 +1,22 @@
+name: arctic_turn
+description: Another Västtrafik travel planner
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.0.0-dev.68.0 <3.0.0"
+
+dependencies:
+  http: any
+  flutter:
+    sdk: flutter
+  cupertino_icons: 0.1.2
+  location: 1.4.1
+  intl: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
