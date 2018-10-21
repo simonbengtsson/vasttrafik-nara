@@ -16,7 +16,7 @@ class VasttrafikApi {
     return _callApi(url);
   }
 
-  getNearby(lat, lon, [limit = 10]) async {
+  getNearby(lat, lon, {limit = 10}) async {
     String path = "/location.nearbystops";
     String queryString = "?originCoordLat=$lat&originCoordLong=$lon&format=json&maxNo=$limit";
     String url = basePath + path + queryString;

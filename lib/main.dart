@@ -36,22 +36,11 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   var nearbyStops = [];
-  var departures = [];
 
   @override
   initState() {
     super.initState();
     fetchData();
-    Timer.periodic(Duration(seconds: 10), (timer) async {
-      if (this.nearbyStops.length == 0) {
-        return;
-      }
-      VasttrafikApi api = VasttrafikApi();
-      var departs = await api.getDepartures(this.nearbyStops[0]['id'], DateTime.now());
-      this.setState(() {
-        this.departures = departs;
-      });
-    });
   }
 
   fetchData() async {
@@ -61,31 +50,43 @@ class _MyHomePageState extends State<MyHomePage> {
     var loc = {'latitude': 57.7067818, 'longitude': 11.9668661}; // Brunnsparken
 
     VasttrafikApi api = VasttrafikApi();
-    var stops = await api.getNearby(loc['latitude'], loc['longitude']);
-    var departs = await api.getDepartures(stops[0]['id'], DateTime.now());
+    var stops = await api.getNearby(loc['latitude'], loc['longitude'], limit: 20);
+    stops = stops.where((stop) => stop['track'] == null).toList();
+
+    var futures = stops.map<Future>((stop) async {
+      return api
+          .getDepartures(stop['id'], DateTime.now())
+          .then((departs) {
+            print(departs);
+            departs.sort((a, b) {
+              return a['rtTime' ?? a['time']].compareTo(b['rtTime'] ?? b['time']) as int;
+            });
+            stop['departures'] = departs;
+          });
+    });
+    await Future.wait(futures);
 
     this.setState(() {
-      this.departures = departs;
-      this.nearbyStops = stops.where((stop) => stop['track'] == null).toList();
+      this.nearbyStops = stops;
     });
   }
 
-  buildDepartureList() {
-    this.departures.sort((a, b) => a['rtTime'].compareTo(b['rtTime']));
+  buildDepartureList(departures) {
+    var children = departures.take(5).map<Widget>((departure) {
+      var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
+      return new Container(
+          decoration: new BoxDecoration (
+            color: hexColor(departure['fgColor']),
+          ),
+          child: ListTile(
+            leading: Text(departure['sname'], style: textStyle),
+            title: Text(departure['direction'], style: textStyle),
+            trailing: Text(departure['rtTime'] ?? departure['time'], style: textStyle),
+          )
+      );
+    }).toList();
     return ListView(
-      children: this.departures.map((departure) {
-        var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
-        return new Container (
-            decoration: new BoxDecoration (
-                color: hexColor(departure['fgColor']),
-            ),
-            child: ListTile(
-              leading: Text(departure['sname'], style: textStyle),
-              title: Text(departure['direction'], style: textStyle),
-              trailing: Text(departure['rtTime'], style: textStyle),
-            )
-        );
-      }).toList()
+      children: children
     );
   }
 
@@ -95,28 +96,36 @@ class _MyHomePageState extends State<MyHomePage> {
     return Color(numColor);
   }
 
+  buildStopHeader(stop) {
+    var name = stop['name'];
+    if (name.endsWith(', Göteborg')) {
+      name = name.substring(0, name.length - ', Göteborg'.length);
+    }
+    return Padding(
+        padding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
+        child: Text(name, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0))
+    );
+  }
+
+  List<Widget> buildStopSections(stops) {
+    var list = <Widget>[];
+    print("Stops");
+    print(stops);
+    stops.forEach((stop) {
+      list.add(buildStopHeader(stop));
+      list.add(Expanded(child: buildDepartureList(stop['departures'] ?? [])));
+    });
+    return list;
+  }
+
   @override
   Widget build(BuildContext context) {
-    var stop = '...';
-    if (this.nearbyStops.length > 0) {
-      stop = this.nearbyStops[0]['name'];
-      if (stop.endsWith(', Göteborg')) {
-        stop = stop.substring(0, stop.length - ', Göteborg'.length);
-      }
-    }
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
-              child: Text(stop, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0),
-            )),
-            Expanded(child: buildDepartureList())
-          ],
+          children: buildStopSections(this.nearbyStops),
         ),
       )
     );
