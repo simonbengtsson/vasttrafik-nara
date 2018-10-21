@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:arctic_turn/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:location/location.dart';
 import 'dart:async';
 import 'package:latlong/latlong.dart';
 import "package:pull_to_refresh/pull_to_refresh.dart";
+import 'package:device_info/device_info.dart';
 
 void main() async {
   runApp(MyApp());
@@ -49,11 +52,16 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   fetchData() async {
-    var location = Location();
-    //var loc = await location.getLocation();
-    //this.currentLocation = LatLng(loc['latitude'], loc['longitude'])
-    //this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
-    this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken
+    var deviceInfo = DeviceInfoPlugin();
+    var isPhysical = Platform.isIOS ? (await deviceInfo.iosInfo).isPhysicalDevice : (await deviceInfo.androidInfo).isPhysicalDevice;
+    if (isPhysical) {
+      var location = Location();
+      var loc = await location.getLocation();
+      this.currentLocation = LatLng(loc['latitude'], loc['longitude']);
+    } else {
+      this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
+      //this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken
+    }
 
     VasttrafikApi api = VasttrafikApi();
     var stops = await api.getNearby(this.currentLocation, limit: 50);

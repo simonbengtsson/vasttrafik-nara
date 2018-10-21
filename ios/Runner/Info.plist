@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>So here we go</string>
+	<string>So the nearby stops can be fetched</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>So the nearby stops can be fetched</string>
 	<key>LSApplicationCategoryType</key>

@@ -15,6 +15,7 @@ dependencies:
   intl: any
   latlong: 0.6.1
   pull_to_refresh: 1.1.5
+  device_info: 0.2.1
 
 dev_dependencies:
   flutter_test:
