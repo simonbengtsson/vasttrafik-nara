@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:latlong/latlong.dart';
+import 'package:flutter/foundation.dart';
 
 class VasttrafikApi {
 
@@ -25,6 +26,13 @@ class VasttrafikApi {
     var json = res.body;
     var map = jsonDecode(json);
     return map['LocationList']['StopLocation'];
+  }
+
+  getJourney(String ref) async {
+    var res = await _callApi(ref);
+    var json = res.body;
+    var map = jsonDecode(json);
+    return map['JourneyDetail'];
   }
 
   getDepartures(id, date) async {

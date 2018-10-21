@@ -17,7 +17,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
@@ -60,8 +59,8 @@ class _MyHomePageState extends State<MyHomePage> {
       var loc = await location.getLocation();
       this.currentLocation = LatLng(loc['latitude'], loc['longitude']);
     } else {
-      this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
-      //this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken
+      //this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
+      this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken
     }
 
     VasttrafikApi api = VasttrafikApi();
@@ -70,7 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var futures = stops.map<Future>((stop) async {
       var departs = await api.getDepartures(stop['id'], DateTime.now());
-      print(departs);
       departs.sort((a, b) {
         return (a['rtTime'] ?? a['time']).compareTo(b['rtTime'] ?? b['time']) as int;
       });
@@ -106,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Text(name, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0)),
+            Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0))),
             Text("${offset.round()} m", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0))
           ]
         )
@@ -162,6 +160,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 2.0))
                 ),
                 child: ListTile(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => JourneyScreen(departure)),
+                    );
+                  },
                   leading: Text(departure['sname'], style: textStyle),
                   title: Text(departure['direction'], style: textStyle),
                   trailing: Text(minStr, style: textStyle),
@@ -179,7 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
       headerConfig: RefreshConfig(visibleRange: 50.0),
       headerBuilder: (ctx, mode) {
         return CupertinoActivityIndicator(
-          animating: mode == RefreshStatus.canRefresh || mode == RefreshStatus.refreshing,
+          animating: mode == RefreshStatus.canRefresh || mode == RefreshStatus.refreshing || mode == RefreshStatus.completed,
           radius: 15.0,
         );
       },
@@ -188,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      appBar: AppBar(title: Text('Arctic Tern'), backgroundColor: Colors.black,),
       body: SafeArea(child: refresher)
     );
   }
@@ -213,4 +217,76 @@ class MessageItem implements ListItem {
   final Map<String, dynamic> departure;
 
   MessageItem(this.departure);
+}
+
+class JourneyScreen extends StatefulWidget {
+
+  Map<String, dynamic> departure;
+
+  JourneyScreen(this.departure);
+
+  @override
+  createState() => _JourneyScreenState(this.departure);
+}
+
+class _JourneyScreenState extends State<JourneyScreen> {
+
+  Map<String, dynamic> departure;
+  List stops = [];
+  Map<String, dynamic> journey = {};
+
+  _JourneyScreenState(this.departure);
+
+  @override
+  initState() {
+    super.initState();
+    fetchData();
+  }
+
+  fetchData() async {
+    VasttrafikApi api = VasttrafikApi();
+    var ref = this.departure['JourneyDetailRef']['ref'];
+    var journey = await api.getJourney(ref);
+
+    this.setState(() {
+      this.stops = journey['Stop'];
+      this.journey = journey;
+    });
+
+    print(this.departure);
+  }
+
+  hexColor(hexStr) {
+    var hex = 'FF' + hexStr.substring(1);
+    var numColor = int.parse(hex, radix: 16);
+    return Color(numColor);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var items = this.stops.map((stop) => stop['name']).toList();
+
+    Color fgColor = hexColor(this.departure['fgColor']);
+    var lum = fgColor.computeLuminance();
+
+    return Scaffold(
+        appBar: AppBar(
+          backgroundColor: fgColor,
+          brightness: lum < 0.8 ? Brightness.dark : Brightness.light,
+          iconTheme: IconThemeData(color: hexColor(this.departure['bgColor'])),
+          title: Text("Route", style: TextStyle(color: hexColor(this.departure['bgColor']))),
+        ),
+        body: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return Container(
+                child: ListTile(
+                  title: Text(item, style: TextStyle(color: Colors.white)),
+                )
+              );
+            }
+        )
+    );
+  }
 }
