@@ -65,7 +65,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
           final stop = this.stops[index];
           var style = TextStyle(
             fontSize: 18.0,
-            color: Colors.white.withOpacity(index < stopIndex ? 0.5 : 1.0),
+            color: stop['id'] == this.departure['stopid'] ? Colors.white : Colors.white.withOpacity(index < stopIndex ? 0.3 : 0.8),
             fontWeight: stop['id'] == this.departure['stopid'] ? FontWeight.w900 : FontWeight.w500,
           );
           return Container(

@@ -45,8 +45,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     VasttrafikApi api = VasttrafikApi();
-    var stops = await api.getNearby(this.currentLocation, limit: 50);
-    stops = stops.where((stop) => stop['track'] == null).toList();
+    var stops = (await api.getNearby(this.currentLocation, limit: 50)).toList();
+    //stops = stops.where((stop) => stop['track'] == null);
 
     var futures = stops.map<Future>((stop) async {
       var departs = await api.getDepartures(stop['id'], DateTime.now());
@@ -134,10 +134,10 @@ class _MyHomePageState extends State<MyHomePage> {
             var departure = item.departure;
 
             String direction = departure['direction'];
-            var subtitle = null;
+            var subtitle = 'Läge ${departure['track']}';
             final viaIndex = direction.indexOf(' via ');
             if (viaIndex > 0) {
-              subtitle = direction.substring(viaIndex, direction.length).trim();
+              subtitle = subtitle + ' • ' + direction.substring(viaIndex, direction.length).trim();
               direction = direction.substring(0, viaIndex).trim();
             }
 
@@ -149,7 +149,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 2.0))
                 ),
                 child: ListTile(
-
                   onTap: () {
                     Navigator.push(
                       context,
@@ -158,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                   leading: Text(departure['sname'], style: textStyle),
                   title: Text(direction, style: textStyle),
-                  subtitle: subtitle == null ? null : Text(subtitle),
+                  subtitle: Text(subtitle, style: TextStyle(color: hexColor(departure['bgColor']))),
                   trailing: Text(minStr, style: textStyle),
                 )
             );
