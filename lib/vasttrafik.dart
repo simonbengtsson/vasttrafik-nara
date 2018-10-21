@@ -6,10 +6,12 @@ import 'package:flutter/foundation.dart';
 
 class VasttrafikApi {
 
-  String authKey = '8aOzt2RmMIG0OXSyIgjM2IkHvAoa';
-  String authSecret = 'OMxjxjaXblXdpn8E1gYFehHyx3Ea';
+  String authKey;
+  String authSecret;
 
   String basePath = "https://api.vasttrafik.se/bin/rest.exe/v2";
+
+  VasttrafikApi(this.authKey, this.authSecret);
 
   search(query) async {
     String path = "/location.name";

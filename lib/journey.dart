@@ -2,6 +2,7 @@ import 'package:arctic_tern/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:arctic_tern/env.dart';
 
 class JourneyScreen extends StatefulWidget {
 
@@ -31,7 +32,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
   }
 
   fetchData() async {
-    VasttrafikApi api = VasttrafikApi();
+    VasttrafikApi api =  VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
     var ref = this.departure['JourneyDetailRef']['ref'];
     var journey = await api.getJourney(ref);
 

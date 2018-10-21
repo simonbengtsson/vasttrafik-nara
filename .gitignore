@@ -10,6 +10,7 @@
 .history
 .svn/
 vt
+env.dart
 
 # IntelliJ related
 *.iml
