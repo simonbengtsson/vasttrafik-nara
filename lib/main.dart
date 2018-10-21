@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:arctic_tern/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import 'dart:async';
 import 'package:latlong/latlong.dart';
 import "package:pull_to_refresh/pull_to_refresh.dart";
 import 'package:device_info/device_info.dart';
+import 'package:intl/intl.dart';
 
 void main() async {
   runApp(MyApp());
@@ -134,6 +134,23 @@ class _MyHomePageState extends State<MyHomePage> {
             );
           } else if (item is MessageItem) {
             var departure = item.departure;
+
+            var timeStr = departure['rtTime'] ?? departure['time'];
+            var dateStr = departure['date'] + ' ' + timeStr;
+            DateFormat format = new DateFormat("yyyy-MM-dd hh:mm");
+            var date = format.parse(dateStr);
+            var now = DateTime.now();
+
+            var minDiff = (date.millisecondsSinceEpoch - now.millisecondsSinceEpoch) / 1000 / 60;
+
+            var minStr = timeStr;
+            if (minDiff <= 0) {
+              minStr = "Now";
+            } else if (minDiff < 60) {
+              minStr = "${minDiff.ceil()}";
+            }
+
+
             var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
             return Container(
                 decoration: BoxDecoration (
@@ -143,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: ListTile(
                   leading: Text(departure['sname'], style: textStyle),
                   title: Text(departure['direction'], style: textStyle),
-                  trailing: Text(departure['rtTime'] ?? departure['time'], style: textStyle),
+                  trailing: Text(minStr, style: textStyle),
                 )
             );
           }
