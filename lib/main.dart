@@ -113,6 +113,25 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  String getRelativeTime(Map<String, dynamic> departure) {
+    var timeStr = departure['rtTime'] ?? departure['time'];
+    var dateStr = departure['date'] + ' ' + timeStr;
+    DateFormat format = new DateFormat("yyyy-MM-dd hh:mm");
+    var date = format.parse(dateStr);
+    var now = DateTime.now();
+
+    var minDiff = (date.millisecondsSinceEpoch - now.millisecondsSinceEpoch) / 1000 / 60;
+
+    var minStr = timeStr;
+    if (minDiff <= 0) {
+      minStr = "Now";
+    } else if (minDiff < 60) {
+      minStr = "${minDiff.ceil()}";
+    }
+
+    return minStr;
+  }
+
   @override
   Widget build(BuildContext context) {
     var items = <ListItem>[];
@@ -135,22 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
           } else if (item is MessageItem) {
             var departure = item.departure;
 
-            var timeStr = departure['rtTime'] ?? departure['time'];
-            var dateStr = departure['date'] + ' ' + timeStr;
-            DateFormat format = new DateFormat("yyyy-MM-dd hh:mm");
-            var date = format.parse(dateStr);
-            var now = DateTime.now();
-
-            var minDiff = (date.millisecondsSinceEpoch - now.millisecondsSinceEpoch) / 1000 / 60;
-
-            var minStr = timeStr;
-            if (minDiff <= 0) {
-              minStr = "Now";
-            } else if (minDiff < 60) {
-              minStr = "${minDiff.ceil()}";
-            }
-
-
+            var minStr = getRelativeTime(departure);
             var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
             return Container(
                 decoration: BoxDecoration (
