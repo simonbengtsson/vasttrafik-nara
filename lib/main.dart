@@ -1,9 +1,11 @@
 import 'package:arctic_turn/vasttrafik.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart';
 import 'dart:async';
 import 'package:latlong/latlong.dart';
+import "package:pull_to_refresh/pull_to_refresh.dart";
 
 void main() async {
   runApp(MyApp());
@@ -38,6 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   var nearbyStops = [];
   LatLng currentLocation;
+  RefreshController refreshController;
 
   @override
   initState() {
@@ -57,15 +60,12 @@ class _MyHomePageState extends State<MyHomePage> {
     stops = stops.where((stop) => stop['track'] == null).toList();
 
     var futures = stops.map<Future>((stop) async {
-      return api
-          .getDepartures(stop['id'], DateTime.now())
-          .then((departs) {
-            print(departs);
-            departs.sort((a, b) {
-              return (a['rtTime'] ?? a['time']).compareTo(b['rtTime'] ?? b['time']) as int;
-            });
-            stop['departures'] = departs;
-          });
+      var departs = await api.getDepartures(stop['id'], DateTime.now());
+      print(departs);
+      departs.sort((a, b) {
+        return (a['rtTime'] ?? a['time']).compareTo(b['rtTime'] ?? b['time']) as int;
+      });
+      stop['departures'] = departs;
     });
     await Future.wait(futures);
 
@@ -113,10 +113,8 @@ class _MyHomePageState extends State<MyHomePage> {
         items.add(MessageItem(dep));
       });
     });
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: ListView.builder(
+
+    var listView = ListView.builder(
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
@@ -130,8 +128,8 @@ class _MyHomePageState extends State<MyHomePage> {
             var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
             return Container(
                 decoration: BoxDecoration (
-                  color: hexColor(departure['fgColor']),
-                  border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 2.0))
+                    color: hexColor(departure['fgColor']),
+                    border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 2.0))
                 ),
                 child: ListTile(
                   leading: Text(departure['sname'], style: textStyle),
@@ -140,10 +138,34 @@ class _MyHomePageState extends State<MyHomePage> {
                 )
             );
           }
-        },
-      ),
-      )
+        }
     );
+
+    this.refreshController = RefreshController();
+
+    var refresher = SmartRefresher(
+      enablePullDown: true,
+      onRefresh: _onRefresh,
+      headerConfig: RefreshConfig(visibleRange: 50.0),
+      headerBuilder: (ctx, mode) {
+        return CupertinoActivityIndicator(
+          animating: mode == RefreshStatus.canRefresh || mode == RefreshStatus.refreshing,
+          radius: 15.0,
+        );
+      },
+      child: listView,
+      controller: this.refreshController,
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(child: refresher)
+    );
+  }
+
+  _onRefresh(isUp) async {
+    await fetchData();
+    refreshController.sendBack(true, RefreshStatus.completed);
   }
 }
 
