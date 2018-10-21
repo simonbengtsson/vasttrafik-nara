@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:arctic_turn/vasttrafik.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart';
+import 'dart:async';
 
 void main() async {
   runApp(MyApp());
@@ -12,6 +11,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -42,18 +42,27 @@ class _MyHomePageState extends State<MyHomePage> {
   initState() {
     super.initState();
     fetchData();
+    Timer.periodic(Duration(seconds: 10), (timer) async {
+      if (this.nearbyStops.length == 0) {
+        return;
+      }
+      VasttrafikApi api = VasttrafikApi();
+      var departs = await api.getDepartures(this.nearbyStops[0]['id'], DateTime.now());
+      this.setState(() {
+        this.departures = departs;
+      });
+    });
   }
 
   fetchData() async {
     var location = Location();
     //var loc = await location.getLocation();
-    var loc = {'latitude': 57.6897091, 'longitude': 11.9719767}; // mock
+    //var loc = {'latitude': 57.6897091, 'longitude': 11.9719767}; // Chalmers
+    var loc = {'latitude': 57.7067818, 'longitude': 11.9668661}; // Brunnsparken
 
     VasttrafikApi api = VasttrafikApi();
     var stops = await api.getNearby(loc['latitude'], loc['longitude']);
     var departs = await api.getDepartures(stops[0]['id'], DateTime.now());
-
-    print(departs);
 
     this.setState(() {
       this.departures = departs;
@@ -61,20 +70,19 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  buildStopList() {
+  buildDepartureList() {
+    this.departures.sort((a, b) => a['rtTime'].compareTo(b['rtTime']));
     return ListView(
       children: this.departures.map((departure) {
-        print("${departure['sname']} ${departure['fgColor']} ${departure['bgColor']} ${departure['stroke']}");
-
         var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
         return new Container (
             decoration: new BoxDecoration (
                 color: hexColor(departure['fgColor']),
             ),
             child: ListTile(
-              leading: Text(departure['sname'] ?? 'NA', style: textStyle),
-              title: Text(departure['direction'] ?? 'NA', style: textStyle),
-              trailing: Text(departure['rtTime'] ?? 'NA', style: textStyle),
+              leading: Text(departure['sname'], style: textStyle),
+              title: Text(departure['direction'], style: textStyle),
+              trailing: Text(departure['rtTime'], style: textStyle),
             )
         );
       }).toList()
@@ -83,7 +91,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   hexColor(hexStr) {
     var hex = 'FF' + hexStr.substring(1);
-    print(hex);
     var numColor = int.parse(hex, radix: 16);
     return Color(numColor);
   }
@@ -108,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
               child: Text(stop, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0),
             )),
-            Expanded(child: buildStopList())
+            Expanded(child: buildDepartureList())
           ],
         ),
       )
