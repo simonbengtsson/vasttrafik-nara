@@ -15,9 +15,12 @@ class JourneyScreen extends StatefulWidget {
 
 class _JourneyScreenState extends State<JourneyScreen> {
 
+  double _ITEM_HEIGHT = 70.0;
+
   Map<String, dynamic> departure;
   List stops = [];
   Map<String, dynamic> journey = {};
+  ScrollController _scrollController;
 
   _JourneyScreenState(this.departure);
 
@@ -48,10 +51,34 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var items = this.stops.map((stop) => stop['name']).toList();
-
     Color fgColor = hexColor(this.departure['fgColor']);
     var lum = fgColor.computeLuminance();
+
+    var stopIndex = this.stops.indexWhere((stop) => stop['id'] == this.departure['stopid']);
+    this._scrollController = ScrollController(initialScrollOffset: stopIndex * 56.0);
+
+    var listView = stopIndex < 0 ? Text('') : ListView.builder(
+        itemCount: this.stops.length,
+        controller: this._scrollController,
+
+        itemBuilder: (context, index) {
+          final stop = this.stops[index];
+          final weight = stop['id'] == this.departure['stopid'] ? FontWeight.bold : FontWeight.normal;
+          return Container(
+              child: ListTile(
+                selected: stop['id'] == this.departure['stopid'],
+                title: Text(
+                    stop['name'],
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.white.withOpacity(index < stopIndex ? 0.5 : 1.0),
+                      fontWeight: weight,
+                    )
+                ),
+              )
+          );
+        }
+    );
 
     var name = this.departure['sname'] + ' ' + this.departure['direction'];
     return Scaffold(
@@ -61,17 +88,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
           iconTheme: IconThemeData(color: hexColor(this.departure['bgColor'])),
           title: Text(name, style: TextStyle(color: hexColor(this.departure['bgColor']))),
         ),
-        body: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return Container(
-                  child: ListTile(
-                    title: Text(item, style: TextStyle(color: Colors.white)),
-                  )
-              );
-            }
-        )
+        body: listView
     );
   }
 }
