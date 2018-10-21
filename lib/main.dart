@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart';
 import 'dart:async';
+import 'package:latlong/latlong.dart';
 
 void main() async {
   runApp(MyApp());
@@ -36,6 +37,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   var nearbyStops = [];
+  LatLng currentLocation;
 
   @override
   initState() {
@@ -46,11 +48,12 @@ class _MyHomePageState extends State<MyHomePage> {
   fetchData() async {
     var location = Location();
     //var loc = await location.getLocation();
-    //var loc = {'latitude': 57.6897091, 'longitude': 11.9719767}; // Chalmers
-    var loc = {'latitude': 57.7067818, 'longitude': 11.9668661}; // Brunnsparken
+    //this.currentLocation = LatLng(loc['latitude'], loc['longitude'])
+    //this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
+    this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken
 
     VasttrafikApi api = VasttrafikApi();
-    var stops = await api.getNearby(loc['latitude'], loc['longitude'], limit: 20);
+    var stops = await api.getNearby(this.currentLocation, limit: 50);
     stops = stops.where((stop) => stop['track'] == null).toList();
 
     var futures = stops.map<Future>((stop) async {
@@ -59,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
           .then((departs) {
             print(departs);
             departs.sort((a, b) {
-              return a['rtTime' ?? a['time']].compareTo(b['rtTime'] ?? b['time']) as int;
+              return (a['rtTime'] ?? a['time']).compareTo(b['rtTime'] ?? b['time']) as int;
             });
             stop['departures'] = departs;
           });
@@ -69,25 +72,6 @@ class _MyHomePageState extends State<MyHomePage> {
     this.setState(() {
       this.nearbyStops = stops;
     });
-  }
-
-  buildDepartureList(departures) {
-    var children = departures.take(5).map<Widget>((departure) {
-      var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
-      return new Container(
-          decoration: new BoxDecoration (
-            color: hexColor(departure['fgColor']),
-          ),
-          child: ListTile(
-            leading: Text(departure['sname'], style: textStyle),
-            title: Text(departure['direction'], style: textStyle),
-            trailing: Text(departure['rtTime'] ?? departure['time'], style: textStyle),
-          )
-      );
-    }).toList();
-    return ListView(
-      children: children
-    );
   }
 
   hexColor(hexStr) {
@@ -101,33 +85,80 @@ class _MyHomePageState extends State<MyHomePage> {
     if (name.endsWith(', Göteborg')) {
       name = name.substring(0, name.length - ', Göteborg'.length);
     }
-    return Padding(
-        padding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 10.0),
-        child: Text(name, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0))
-    );
-  }
 
-  List<Widget> buildStopSections(stops) {
-    var list = <Widget>[];
-    print("Stops");
-    print(stops);
-    stops.forEach((stop) {
-      list.add(buildStopHeader(stop));
-      list.add(Expanded(child: buildDepartureList(stop['departures'] ?? [])));
-    });
-    return list;
+    final Distance distance = new Distance();
+    var offset = distance.as(
+        LengthUnit.Meter,
+        new LatLng(double.parse(stop['lat']), double.parse(stop['lon'])),
+        this.currentLocation
+    );
+    return Padding(
+        padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 0.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(name, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0)),
+            Text("${offset.round()} m", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0))
+          ]
+        )
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    var items = <ListItem>[];
+    nearbyStops.forEach((stop) {
+      items.add(HeadingItem(stop));
+      stop['departures'].take(5).forEach((dep) {
+        items.add(MessageItem(dep));
+      });
+    });
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: buildStopSections(this.nearbyStops),
-        ),
+        child: ListView.builder(
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+
+          if (item is HeadingItem) {
+            return ListTile(
+              title: buildStopHeader(item.stop),
+            );
+          } else if (item is MessageItem) {
+            var departure = item.departure;
+            var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
+            return Container(
+                decoration: BoxDecoration (
+                  color: hexColor(departure['fgColor']),
+                  border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 2.0))
+                ),
+                child: ListTile(
+                  leading: Text(departure['sname'], style: textStyle),
+                  title: Text(departure['direction'], style: textStyle),
+                  trailing: Text(departure['rtTime'] ?? departure['time'], style: textStyle),
+                )
+            );
+          }
+        },
+      ),
       )
     );
   }
+}
+
+abstract class ListItem {}
+
+// A ListItem that contains data to display a heading
+class HeadingItem implements ListItem {
+  final Map stop;
+
+  HeadingItem(this.stop);
+}
+
+// A ListItem that contains data to display a message
+class MessageItem implements ListItem {
+  final Map<String, dynamic> departure;
+
+  MessageItem(this.departure);
 }

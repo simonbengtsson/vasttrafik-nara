@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:latlong/latlong.dart';
 
 class VasttrafikApi {
 
@@ -16,9 +17,9 @@ class VasttrafikApi {
     return _callApi(url);
   }
 
-  getNearby(lat, lon, {limit = 10}) async {
+  getNearby(LatLng latLng, {limit = 10}) async {
     String path = "/location.nearbystops";
-    String queryString = "?originCoordLat=$lat&originCoordLong=$lon&format=json&maxNo=$limit";
+    String queryString = "?originCoordLat=${latLng.latitude}&originCoordLong=${latLng.longitude}&format=json&maxNo=$limit";
     String url = basePath + path + queryString;
     var res = await _callApi(url);
     var json = res.body;
