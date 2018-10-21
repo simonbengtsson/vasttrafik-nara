@@ -46,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     VasttrafikApi api = VasttrafikApi();
     var stops = (await api.getNearby(this.currentLocation, limit: 50)).toList();
-    //stops = stops.where((stop) => stop['track'] == null);
+    stops = stops.where((stop) => stop['track'] == null).toList();
 
     var futures = stops.map<Future>((stop) async {
       var departs = await api.getDepartures(stop['id'], DateTime.now());
@@ -68,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Color(numColor);
   }
 
-  buildStopHeader(stop) {
+  buildStopHeader(stop, context) {
     var name = stop['name'];
     if (name.endsWith(', Göteborg')) {
       name = name.substring(0, name.length - ', Göteborg'.length);
@@ -80,13 +80,16 @@ class _MyHomePageState extends State<MyHomePage> {
         new LatLng(double.parse(stop['lat']), double.parse(stop['lon'])),
         this.currentLocation
     );
+
+    var style = Theme.of(context).textTheme.headline.copyWith(fontWeight: FontWeight.w900, fontSize: 28.0);
+    //var style = TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0);
     return Padding(
         padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 0.0),
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Flexible(child: AutoSizeText(name, overflow: TextOverflow.ellipsis, maxLines: 1, minFontSize: 16.0, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0))),
-              Text("${offset.round()} m", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0))
+              Flexible(child: AutoSizeText(name, overflow: TextOverflow.ellipsis, maxLines: 1, minFontSize: 16.0, style: style)),
+              Text("${offset.round()} m", style: style)
             ]
         )
     );
@@ -128,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
           if (item is HeadingItem) {
             return ListTile(
-              title: buildStopHeader(item.stop),
+              title: buildStopHeader(item.stop, context),
             );
           } else if (item is MessageItem) {
             var departure = item.departure;
@@ -181,9 +184,23 @@ class _MyHomePageState extends State<MyHomePage> {
       controller: this.refreshController,
     );
 
+    var loader = Padding(
+        padding: EdgeInsets.all(20.0),
+        child: Center(
+          child: Column(
+              children: <Widget>[CupertinoActivityIndicator(
+                  animating: true,
+                  radius: 15.0
+              )]
+          )
+        )
+    );
+
+    print(this.nearbyStops.length);
+
     return Scaffold(
-        appBar: AppBar(title: Text('Arctic Tern'), backgroundColor: Colors.black,),
-        body: SafeArea(child: refresher)
+        appBar: AppBar(title: Text('Arctic Tern', style: TextStyle(fontWeight: FontWeight.w900)), backgroundColor: Colors.black),
+        body: SafeArea(child: this.nearbyStops.length == 0 ? loader : refresher)
     );
   }
 
