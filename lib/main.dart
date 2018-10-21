@@ -9,6 +9,7 @@ import 'package:latlong/latlong.dart';
 import "package:pull_to_refresh/pull_to_refresh.dart";
 import 'package:device_info/device_info.dart';
 import 'package:intl/intl.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 void main() async {
   runApp(MyApp());
@@ -104,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0))),
+            Flexible(child: AutoSizeText(name, overflow: TextOverflow.ellipsis, maxLines: 1, minFontSize: 16.0, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0))),
             Text("${offset.round()} m", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0))
           ]
         )
@@ -269,12 +270,13 @@ class _JourneyScreenState extends State<JourneyScreen> {
     Color fgColor = hexColor(this.departure['fgColor']);
     var lum = fgColor.computeLuminance();
 
+    var name = this.departure['sname'] + ' ' + this.departure['direction'];
     return Scaffold(
         appBar: AppBar(
           backgroundColor: fgColor,
-          brightness: lum < 0.8 ? Brightness.dark : Brightness.light,
+          brightness: lum < 0.7 ? Brightness.dark : Brightness.light,
           iconTheme: IconThemeData(color: hexColor(this.departure['bgColor'])),
-          title: Text("Route", style: TextStyle(color: hexColor(this.departure['bgColor']))),
+          title: Text(name, style: TextStyle(color: hexColor(this.departure['bgColor']))),
         ),
         body: ListView.builder(
             itemCount: items.length,
