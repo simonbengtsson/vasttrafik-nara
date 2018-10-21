@@ -40,8 +40,8 @@ class _MyHomePageState extends State<MyHomePage> {
       var loc = await location.getLocation();
       this.currentLocation = LatLng(loc['latitude'], loc['longitude']);
     } else {
-      //this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
-      this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken
+      this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
+      //this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken
     }
 
     VasttrafikApi api = VasttrafikApi();
@@ -133,6 +133,14 @@ class _MyHomePageState extends State<MyHomePage> {
           } else if (item is MessageItem) {
             var departure = item.departure;
 
+            String direction = departure['direction'];
+            var subtitle = null;
+            final viaIndex = direction.indexOf(' via ');
+            if (viaIndex > 0) {
+              subtitle = direction.substring(viaIndex, direction.length).trim();
+              direction = direction.substring(0, viaIndex).trim();
+            }
+
             var minStr = getRelativeTime(departure);
             var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
             return Container(
@@ -141,6 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 2.0))
                 ),
                 child: ListTile(
+
                   onTap: () {
                     Navigator.push(
                       context,
@@ -148,7 +157,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   },
                   leading: Text(departure['sname'], style: textStyle),
-                  title: Text(departure['direction'], style: textStyle),
+                  title: Text(direction, style: textStyle),
+                  subtitle: subtitle == null ? null : Text(subtitle),
                   trailing: Text(minStr, style: textStyle),
                 )
             );

@@ -63,18 +63,19 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
         itemBuilder: (context, index) {
           final stop = this.stops[index];
-          final weight = stop['id'] == this.departure['stopid'] ? FontWeight.bold : FontWeight.normal;
+          var style = TextStyle(
+            fontSize: 18.0,
+            color: Colors.white.withOpacity(index < stopIndex ? 0.5 : 1.0),
+            fontWeight: stop['id'] == this.departure['stopid'] ? FontWeight.w900 : FontWeight.w500,
+          );
           return Container(
               child: ListTile(
                 selected: stop['id'] == this.departure['stopid'],
                 title: Text(
                     stop['name'],
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      color: Colors.white.withOpacity(index < stopIndex ? 0.5 : 1.0),
-                      fontWeight: weight,
-                    )
+                    style: style
                 ),
+                trailing: Text(stop['depTime'] ?? stop['arrTime'], style: style),
               )
           );
         }
