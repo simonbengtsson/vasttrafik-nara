@@ -1,4 +1,4 @@
-# Arctic Turn
+# Arctic Tern
 
 Another Västtrafik travel planner
 
