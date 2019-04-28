@@ -134,7 +134,6 @@ class DepartureItem {
     return Container(
         decoration: BoxDecoration (
             color: hexColor(departure['fgColor']),
-            border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 2.0))
         ),
         child: ListTile(
           onTap: () {
