@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var items = <ListItem>[];
+    var items = <StopHeadingItem>[];
     nearbyStops.forEach((stop) {
       items.add(StopHeadingItem(stop, currentLocation, context));
     });
@@ -110,11 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-abstract class ListItem {
-  Widget build();
-}
-
-class StopHeadingItem implements ListItem {
+class StopHeadingItem {
   final Map stop;
   final BuildContext context;
   final LatLng currentLocation;
@@ -154,70 +150,6 @@ class StopHeadingItem implements ListItem {
             ]
         )
       )
-    );
-  }
-}
-
-class DepartureItem implements ListItem {
-  final Map departure;
-  final BuildContext context;
-
-  DepartureItem(this.departure, this.context);
-
-  String getRelativeTime(Map<String, dynamic> departure) {
-    var timeStr = departure['rtTime'] ?? departure['time'];
-    var dateStr = departure['date'] + ' ' + timeStr;
-    DateFormat format = new DateFormat("yyyy-MM-dd hh:mm");
-    var date = format.parse(dateStr);
-    var now = DateTime.now();
-
-    var minDiff = (date.millisecondsSinceEpoch - now.millisecondsSinceEpoch) / 1000 / 60;
-
-    var minStr = timeStr;
-    if (minDiff <= 0) {
-      minStr = "Now";
-    } else if (minDiff < 60) {
-      minStr = "${minDiff.ceil()}";
-    }
-
-    return minStr;
-  }
-
-  hexColor(hexStr) {
-    var hex = 'FF' + hexStr.substring(1);
-    var numColor = int.parse(hex, radix: 16);
-    return Color(numColor);
-  }
-
-  @override
-  Widget build() {
-    String direction = departure['direction'];
-    var subtitle = 'Läge ${departure['track']}';
-    final viaIndex = direction.indexOf(' via ');
-    if (viaIndex > 0) {
-      subtitle = subtitle + ' • ' + direction.substring(viaIndex, direction.length).trim();
-      direction = direction.substring(0, viaIndex).trim();
-    }
-
-    var minStr = getRelativeTime(departure);
-    var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
-    return Container(
-        decoration: BoxDecoration (
-            color: hexColor(departure['fgColor']),
-            border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 2.0))
-        ),
-        child: ListTile(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => JourneyScreen(departure)),
-            );
-          },
-          leading: Text(departure['sname'], style: textStyle),
-          title: Text(direction, style: textStyle),
-          subtitle: Text(subtitle, style: TextStyle(color: hexColor(departure['bgColor']))),
-          trailing: Text(minStr, style: textStyle),
-        )
     );
   }
 }

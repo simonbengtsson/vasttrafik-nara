@@ -1,17 +1,9 @@
-import 'dart:io';
 import 'package:arctic_tern/env.dart';
 import 'package:arctic_tern/journey.dart';
 import 'package:arctic_tern/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:location/location.dart';
-import 'dart:async';
-import 'package:latlong/latlong.dart';
-import 'package:device_info/device_info.dart';
 import 'package:intl/intl.dart';
-import 'package:auto_size_text/auto_size_text.dart';
-
-import 'home.dart';
 
 class StopPage extends StatefulWidget {
   StopPage({Key key, this.stop}) : super(key: key);
@@ -47,7 +39,7 @@ class _StopPageState extends State<StopPage> {
 
   @override
   Widget build(BuildContext context) {
-    var items = <ListItem>[];
+    var items = <DepartureItem>[];
     departures.forEach((dep) {
       items.add(DepartureItem(dep, context));
     });
@@ -93,5 +85,69 @@ class _StopPageState extends State<StopPage> {
       this.departures = [];
     });
     await fetchData();
+  }
+}
+
+class DepartureItem {
+  final Map departure;
+  final BuildContext context;
+
+  DepartureItem(this.departure, this.context);
+
+  String getRelativeTime(Map<String, dynamic> departure) {
+    var timeStr = departure['rtTime'] ?? departure['time'];
+    var dateStr = departure['date'] + ' ' + timeStr;
+    DateFormat format = new DateFormat("yyyy-MM-dd hh:mm");
+    var date = format.parse(dateStr);
+    var now = DateTime.now();
+
+    var minDiff = (date.millisecondsSinceEpoch - now.millisecondsSinceEpoch) / 1000 / 60;
+
+    var minStr = timeStr;
+    if (minDiff <= 0) {
+      minStr = "Now";
+    } else if (minDiff < 60) {
+      minStr = "${minDiff.ceil()}";
+    }
+
+    return minStr;
+  }
+
+  hexColor(hexStr) {
+    var hex = 'FF' + hexStr.substring(1);
+    var numColor = int.parse(hex, radix: 16);
+    return Color(numColor);
+  }
+
+  @override
+  Widget build() {
+    String direction = departure['direction'];
+    var subtitle = 'Läge ${departure['track']}';
+    final viaIndex = direction.indexOf(' via ');
+    if (viaIndex > 0) {
+      subtitle = subtitle + ' • ' + direction.substring(viaIndex, direction.length).trim();
+      direction = direction.substring(0, viaIndex).trim();
+    }
+
+    var minStr = getRelativeTime(departure);
+    var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
+    return Container(
+        decoration: BoxDecoration (
+            color: hexColor(departure['fgColor']),
+            border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 2.0))
+        ),
+        child: ListTile(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => JourneyScreen(departure)),
+            );
+          },
+          leading: Text(departure['sname'], style: textStyle),
+          title: Text(direction, style: textStyle),
+          subtitle: Text(subtitle, style: TextStyle(color: hexColor(departure['bgColor']))),
+          trailing: Text(minStr, style: textStyle),
+        )
+    );
   }
 }
