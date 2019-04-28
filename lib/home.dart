@@ -48,15 +48,6 @@ class _MyHomePageState extends State<MyHomePage> {
     var stops = (await api.getNearby(this.currentLocation, limit: 50)).toList();
     stops = stops.where((stop) => stop['track'] == null).toList();
 
-    var futures = stops.map<Future>((stop) async {
-      var departs = await api.getDepartures(stop['id'], DateTime.now());
-      departs.sort((a, b) {
-        return (a['rtTime'] ?? a['time']).compareTo(b['rtTime'] ?? b['time']) as int;
-      });
-      stop['departures'] = departs;
-    });
-    await Future.wait(futures);
-
     this.setState(() {
       this.nearbyStops = stops;
     });
@@ -73,9 +64,6 @@ class _MyHomePageState extends State<MyHomePage> {
     var items = <ListItem>[];
     nearbyStops.forEach((stop) {
       items.add(StopHeadingItem(stop, currentLocation, context));
-      stop['departures'].take(5).forEach((dep) {
-        items.add(DepartureItem(dep, context));
-      });
     });
 
     var listView = ListView.builder(
