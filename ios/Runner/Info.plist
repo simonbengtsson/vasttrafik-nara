@@ -24,6 +24,8 @@
 	<string>public.app-category.travel</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>So the nearby stops can be fetched</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>So the nearby stops can be fetched</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
