@@ -10,13 +10,12 @@ dependencies:
   http: any
   flutter:
     sdk: flutter
-  cupertino_icons: 0.1.2
-  location: 1.4.1
+  cupertino_icons: ^0.1.2
+  location: ^1.4.1
   intl: any
-  latlong: 0.6.1
-  pull_to_refresh: 1.1.5
-  device_info: 0.2.1
-  auto_size_text: 0.2.1
+  latlong: ^0.6.1
+  device_info: ^0.2.1
+  auto_size_text: ^0.2.1
 
 dev_dependencies:
   flutter_test:

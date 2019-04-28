@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'dart:async';
 import 'package:latlong/latlong.dart';
-import "package:pull_to_refresh/pull_to_refresh.dart";
 import 'package:device_info/device_info.dart';
 import 'package:intl/intl.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -25,7 +24,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   var nearbyStops = [];
   LatLng currentLocation;
-  RefreshController refreshController;
 
   @override
   initState() {
@@ -87,22 +85,6 @@ class _MyHomePageState extends State<MyHomePage> {
         }
     );
 
-    this.refreshController = RefreshController();
-
-    var refresher = SmartRefresher(
-      enablePullDown: true,
-      onRefresh: _onRefresh,
-      headerConfig: RefreshConfig(visibleRange: 50.0),
-      headerBuilder: (ctx, mode) {
-        return CupertinoActivityIndicator(
-          animating: mode == RefreshStatus.canRefresh || mode == RefreshStatus.refreshing || mode == RefreshStatus.completed,
-          radius: 15.0,
-        );
-      },
-      child: listView,
-      controller: this.refreshController,
-    );
-
     var loader = Padding(
         padding: EdgeInsets.all(20.0),
         child: Center(
@@ -116,14 +98,26 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     return Scaffold(
-        appBar: AppBar(title: Text('Arctic Tern', style: TextStyle(fontWeight: FontWeight.w900)), backgroundColor: Colors.black),
-        body: SafeArea(child: this.nearbyStops.length == 0 ? loader : refresher)
+        appBar: AppBar(
+            title: Text('Arctic Tern', style: TextStyle(fontWeight: FontWeight.w900)),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.refresh),
+                tooltip: 'Open shopping cart',
+                onPressed: _onRefresh,
+              ),
+            ],
+            backgroundColor: Colors.black
+        ),
+        body: SafeArea(child: this.nearbyStops.length == 0 ? loader : listView)
     );
   }
 
-  _onRefresh(isUp) async {
+  _onRefresh() async {
+    this.setState(() {
+      this.nearbyStops = [];
+    });
     await fetchData();
-    refreshController.sendBack(true, RefreshStatus.completed);
   }
 }
 
