@@ -1,3 +1,4 @@
+import 'package:arctic_tern/stop.dart';
 import 'package:arctic_tern/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +16,6 @@ class JourneyScreen extends StatefulWidget {
 }
 
 class _JourneyScreenState extends State<JourneyScreen> {
-
-  double _ITEM_HEIGHT = 70.0;
 
   Map<String, dynamic> departure;
   List stops = [];
@@ -40,8 +39,6 @@ class _JourneyScreenState extends State<JourneyScreen> {
       this.stops = journey['Stop'];
       this.journey = journey;
     });
-
-    print(this.departure);
   }
 
   hexColor(hexStr) {
@@ -71,6 +68,12 @@ class _JourneyScreenState extends State<JourneyScreen> {
           );
           return Container(
               child: ListTile(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => StopPage(stop: stop)),
+                  );
+                },
                 selected: stop['id'] == this.departure['stopid'],
                 title: Text(
                     stop['name'],

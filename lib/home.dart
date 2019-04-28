@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:arctic_tern/env.dart';
 import 'package:arctic_tern/journey.dart';
+import 'package:arctic_tern/stop.dart';
 import 'package:arctic_tern/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -149,6 +150,12 @@ class StopHeadingItem implements ListItem {
     var style = Theme.of(context).textTheme.headline.copyWith(fontWeight: FontWeight.w700, fontSize: 28.0);
     //var style = TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0);
     return ListTile(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => StopPage(stop: this.stop)),
+        );
+      },
       title: Padding(
         padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 0.0),
         child: Row(
