@@ -88,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
         appBar: AppBar(
-            title: Text('Arctic Tern', style: TextStyle(fontWeight: FontWeight.w900)),
+            title: Text('Arctic Tern'),
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.refresh),

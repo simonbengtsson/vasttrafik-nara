@@ -27,14 +27,18 @@ class _StopPageState extends State<StopPage> {
   fetchData() async {
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
 
-    var departs = await api.getDepartures(this.widget.stop['id'], DateTime.now());
+    var stopId = this.widget.stop['id'];
+    var departs = await api.getDepartures(stopId, DateTime.now()) ?? [];
     departs.sort((a, b) {
       return (a['rtTime'] ?? a['time']).compareTo(b['rtTime'] ?? b['time']) as int;
     });
 
-    this.setState(() {
-      this.departures = departs;
-    });
+    if (this.mounted) {
+      this.setState(() {
+        this.departures = departs;
+      });
+    }
+
   }
 
   @override
@@ -66,7 +70,7 @@ class _StopPageState extends State<StopPage> {
 
     return Scaffold(
         appBar: AppBar(
-            title: Text(this.widget.stop['name'], style: TextStyle(fontWeight: FontWeight.w900)),
+            title: Text(this.widget.stop['name']),
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.refresh),

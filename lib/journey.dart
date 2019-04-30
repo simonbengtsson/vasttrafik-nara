@@ -35,10 +35,12 @@ class _JourneyScreenState extends State<JourneyScreen> {
     var ref = this.departure['JourneyDetailRef']['ref'];
     var journey = await api.getJourney(ref);
 
-    this.setState(() {
-      this.stops = journey['Stop'];
-      this.journey = journey;
-    });
+    if (this.mounted) {
+      this.setState(() {
+        this.stops = journey['Stop'];
+        this.journey = journey;
+      });
+    }
   }
 
   hexColor(hexStr) {
