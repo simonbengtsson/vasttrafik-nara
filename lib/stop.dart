@@ -78,7 +78,6 @@ class _StopPageState extends State<StopPage> {
                 onPressed: _onRefresh,
               ),
             ],
-            backgroundColor: Colors.black
         ),
         body: SafeArea(child: this.departures.length == 0 ? loader : listView)
     );

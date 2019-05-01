@@ -1,6 +1,7 @@
-# Arctic Tern
+# Västtrafik Nära
+---
 
-Just another Västtrafik travel planner
+Nearby stops, departures and journeys for västtrafik
 
 App Store: https://itunes.apple.com/gb/app/arctic-tern/id1439743742?mt=8
 

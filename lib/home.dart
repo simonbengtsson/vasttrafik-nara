@@ -88,15 +88,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
         appBar: AppBar(
-            title: Text('Arctic Tern'),
+            title: Text('Arctic Tern', style: TextStyle(color: Colors.black)),
+            brightness: Brightness.light,
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.refresh),
+                color: Colors.black,
                 tooltip: 'Open shopping cart',
                 onPressed: _onRefresh,
               ),
             ],
-            backgroundColor: Colors.black
+            backgroundColor: Colors.white
         ),
         body: SafeArea(child: this.nearbyStops.length == 0 ? loader : listView)
     );
@@ -131,8 +133,6 @@ class StopHeadingItem {
         this.currentLocation
     );
 
-    var style = Theme.of(context).textTheme.headline.copyWith(fontWeight: FontWeight.w700, fontSize: 28.0);
-    //var style = TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30.0);
     return ListTile(
       onTap: () {
         Navigator.push(
@@ -145,8 +145,22 @@ class StopHeadingItem {
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Flexible(child: AutoSizeText(name, overflow: TextOverflow.ellipsis, maxLines: 1, minFontSize: 16.0, style: style)),
-              Text("${offset.round()} m", style: style)
+              Flexible(child: AutoSizeText(
+                  name,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  minFontSize: 16.0,
+                  style: Theme.of(context).textTheme.headline.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 28.0,
+                      color: Colors.black
+                  )
+              )),
+              Text("${offset.round()} m", style: Theme.of(context).textTheme.headline.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 28.0,
+                  color: Colors.grey
+              ))
             ]
         )
       )
