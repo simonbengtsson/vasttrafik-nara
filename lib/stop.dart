@@ -30,7 +30,9 @@ class _StopPageState extends State<StopPage> {
     var stopId = this.widget.stop['id'];
     var departs = await api.getDepartures(stopId, DateTime.now()) ?? [];
     departs.sort((a, b) {
-      return (a['rtTime'] ?? a['time']).compareTo(b['rtTime'] ?? b['time']) as int;
+      var aTime = a['rtTime'] ?? a['time'];
+      var bTime = b['rtTime'] ?? b['time'];
+      return aTime.compareTo(bTime) as int;
     });
 
     if (this.mounted) {
@@ -100,7 +102,7 @@ class DepartureItem {
   String getRelativeTime(Map<String, dynamic> departure) {
     var timeStr = departure['rtTime'] ?? departure['time'];
     var dateStr = departure['date'] + ' ' + timeStr;
-    DateFormat format = new DateFormat("yyyy-MM-dd hh:mm");
+    DateFormat format = new DateFormat("yyyy-MM-dd HH:mm");
     var date = format.parse(dateStr);
     var now = DateTime.now();
 
