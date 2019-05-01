@@ -147,15 +147,9 @@ class StopHeadingItem {
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   minFontSize: 16.0,
-                  style: Theme.of(context).textTheme.headline.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 28.0,
-                      color: Colors.black
-                  )
+                  style: Theme.of(context).textTheme.headline
               )),
               Text("${offset.round()} m", style: Theme.of(context).textTheme.headline.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 28.0,
                   color: Colors.grey
               ))
             ]

@@ -57,7 +57,19 @@ class _JourneyScreenState extends State<JourneyScreen> {
     var stopIndex = this.stops.indexWhere((stop) => stop['id'] == this.departure['stopid']);
     this._scrollController = ScrollController(initialScrollOffset: stopIndex * 56.0);
 
-    var listView = stopIndex < 0 ? Text('') : ListView.builder(
+    var loader = Padding(
+        padding: EdgeInsets.all(20.0),
+        child: Center(
+            child: Column(
+                children: <Widget>[CupertinoActivityIndicator(
+                    animating: true,
+                    radius: 15.0
+                )]
+            )
+        )
+    );
+
+    var listView = stopIndex < 0 ? loader : ListView.builder(
         itemCount: this.stops.length,
         controller: this._scrollController,
 
@@ -65,9 +77,15 @@ class _JourneyScreenState extends State<JourneyScreen> {
           final stop = this.stops[index];
           var style = TextStyle(
             fontSize: 18.0,
-            color: stop['id'] == this.departure['stopid'] ? Colors.white : Colors.white.withOpacity(index < stopIndex ? 0.3 : 0.8),
+            color: stop['id'] == this.departure['stopid'] ? Colors.black : Colors.black.withOpacity(index < stopIndex ? 0.3 : 0.8),
             fontWeight: stop['id'] == this.departure['stopid'] ? FontWeight.w900 : FontWeight.w500,
           );
+
+          var name = stop['name'];
+          if (name.endsWith(', Göteborg')) {
+            name = name.substring(0, name.length - ', Göteborg'.length);
+          }
+
           return Container(
               child: ListTile(
                 onTap: () {
@@ -78,7 +96,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                 },
                 selected: stop['id'] == this.departure['stopid'],
                 title: Text(
-                    stop['name'],
+                    name,
                     style: style
                 ),
                 trailing: Text(stop['depTime'] ?? stop['arrTime'], style: style),
