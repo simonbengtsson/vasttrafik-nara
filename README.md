@@ -17,9 +17,9 @@ Google Play: https://play.google.com/store/apps/details?id=com.simonbengtsson.ar
 ### Publish iOS
 - Update pubspec.yaml version number
 - flutter build ios
-- Archive and distribute in Xcode
+- Archive and distribute through Xcode
 
 ### Publish Android
 - Update pubspec.yaml version number
 - flutter build apk
-- Upload apk mabnually
+- Upload apk to Google Play Console
