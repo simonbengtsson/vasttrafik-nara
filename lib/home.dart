@@ -1,15 +1,12 @@
 import 'dart:io';
 import 'package:arctic_tern/env.dart';
-import 'package:arctic_tern/journey.dart';
 import 'package:arctic_tern/stop.dart';
 import 'package:arctic_tern/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
-import 'dart:async';
 import 'package:latlong/latlong.dart';
 import 'package:device_info/device_info.dart';
-import 'package:intl/intl.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -88,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
         appBar: AppBar(
-            title: Text('Arctic Tern', style: TextStyle(color: Colors.black)),
+            title: Text('Västtrafik Nära', style: TextStyle(color: Colors.black)),
             brightness: Brightness.light,
             actions: <Widget>[
               IconButton(
