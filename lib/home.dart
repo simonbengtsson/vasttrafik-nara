@@ -10,9 +10,7 @@ import 'package:device_info/device_info.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
+  MyHomePage({Key key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -20,6 +18,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  var fetchComplete = false;
   var nearbyStops = [];
   LatLng currentLocation;
 
@@ -42,11 +41,12 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-    var stops = (await api.getNearby(this.currentLocation, limit: 50)).toList();
+    var stops = await api.getNearby(this.currentLocation, limit: 50) ?? [];
     stops = stops.where((stop) => stop['track'] == null).toList();
 
     this.setState(() {
       this.nearbyStops = stops;
+      this.fetchComplete = true;
     });
   }
 
@@ -83,6 +83,22 @@ class _MyHomePageState extends State<MyHomePage> {
         )
     );
 
+    var mainCmp;
+    if (!this.fetchComplete) {
+      mainCmp = loader;
+    } else if (this.nearbyStops.length == 0) {
+      mainCmp = Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Center(
+              child: Column(
+                  children: <Widget>[Text("No stops nearby", style: TextStyle(fontSize: 16),)]
+              )
+          )
+      );
+    } else {
+      mainCmp = listView;
+    }
+
     return Scaffold(
         appBar: AppBar(
             title: Text('Västtrafik Nära', style: TextStyle(color: Colors.black)),
@@ -97,13 +113,14 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
             backgroundColor: Colors.white
         ),
-        body: SafeArea(child: this.nearbyStops.length == 0 ? loader : listView)
+        body: SafeArea(child: mainCmp)
     );
   }
 
   _onRefresh() async {
     this.setState(() {
       this.nearbyStops = [];
+      this.fetchComplete = false;
     });
     await fetchData();
   }
