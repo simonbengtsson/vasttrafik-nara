@@ -104,11 +104,31 @@ class _MyHomePageState extends State<MyHomePage> {
             title: Text('Västtrafik Nära', style: TextStyle(color: Colors.black)),
             brightness: Brightness.light,
             actions: <Widget>[
-              IconButton(
-                icon: Icon(Icons.refresh),
+              /*IconButton(
+                icon: Icon(Icons.search),
                 color: Colors.black,
-                tooltip: 'Open shopping cart',
-                onPressed: _onRefresh,
+                tooltip: 'Search',
+                onPressed: () {
+                  print("Search...");
+                },
+              ),*/
+              PopupMenuButton<String>(
+                onSelected: (choice) {
+                  if (choice == 'Refresh') {
+                    _onRefresh();
+                  } else {
+                    print("Settings");
+                  }
+                },
+                itemBuilder: (BuildContext context) {
+                  var choices = ["Refresh", "Settings"];
+                  return choices.map((String choice) {
+                    return PopupMenuItem<String>(
+                      value: choice,
+                      child: Text(choice),
+                    );
+                  }).toList();
+                },
               ),
             ],
             backgroundColor: Colors.white
@@ -125,6 +145,22 @@ class _MyHomePageState extends State<MyHomePage> {
     await fetchData();
   }
 }
+
+class Choice {
+  const Choice({this.title, this.icon});
+
+  final String title;
+  final IconData icon;
+}
+
+const List<Choice> choices = const <Choice>[
+  const Choice(title: 'Car', icon: Icons.directions_car),
+  const Choice(title: 'Bicycle', icon: Icons.directions_bike),
+  const Choice(title: 'Boat', icon: Icons.directions_boat),
+  const Choice(title: 'Bus', icon: Icons.directions_bus),
+  const Choice(title: 'Train', icon: Icons.directions_railway),
+  const Choice(title: 'Walk', icon: Icons.directions_walk),
+];
 
 class StopHeadingItem {
   final Map stop;
