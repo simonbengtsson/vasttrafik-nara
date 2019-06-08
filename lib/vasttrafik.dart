@@ -54,42 +54,11 @@ class VasttrafikApi {
     return map['DepartureBoard']['Departure'];
   }
 
-  getDirections(departs, stop) async {
-    List<Future> futures = [];
-    var stopId = departs[0]['stopid'];
-    departs.forEach((dep) {
-      var ref = dep['JourneyDetailRef']['ref'];
-      futures.add(getJourney(ref).then((journey) {
-        return {'departure': dep, 'journey': journey};
-      }));
-    });
-    var res = await Future.wait(futures);
-    var dirs = {};
-    res.forEach((r) {
-      var journey = r['journey'];
-      var dep = r['departure'];
-      var stops = journey["Stop"];
-      var stopIndex = stops.indexWhere((stop) => stop['id'] == dep['stopid']);
-      if (stopIndex >= 0 && stops.length > stopIndex + 1) {
-        var stop = stops[stopIndex + 1];
-        stop['name'] = removeGothenburg(stop['name']);
-        dirs[convertToStopId(stop['id'])] = stop;
-      }
-    });
-
-    return dirs.values.toList();
-  }
-
   removeGothenburg(name) {
     if (name.endsWith(', Göteborg')) {
       name = name.substring(0, name.length - ', Göteborg'.length);
     }
     return name;
-  }
-
-  convertToStopId(String id) {
-    var intId = int.parse(id);
-    return '${(intId / 1000).round()}';
   }
 
   _callApi(url) async {

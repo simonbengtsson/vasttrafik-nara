@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:arctic_tern/env.dart';
 import 'package:arctic_tern/journey.dart';
 import 'package:arctic_tern/vasttrafik.dart';
@@ -18,22 +20,13 @@ class StopPage extends StatefulWidget {
 class _StopPageState extends State<StopPage> {
 
   var departures = [];
-  var directions = [];
+  var nextStops = [];
+  var activeNextStopTags = {};
 
   @override
   initState() {
     super.initState();
     fetchData();
-  }
-
-  fetchDirections(departs, stop) async {
-    VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-    var dirs = await api.getDirections(departs, stop);
-    if (this.mounted) {
-      this.setState(() {
-        this.directions = dirs;
-      });
-    }
   }
 
   fetchData() async {
@@ -48,8 +41,8 @@ class _StopPageState extends State<StopPage> {
     });
 
     const isProd = bool.fromEnvironment("dart.vm.product");
-    if (isProd) {
-      fetchDirections(departs, this.widget.stop);
+    if (!isProd) {
+      initNextStops(api, departs);
     }
 
     if (this.mounted) {
@@ -59,20 +52,70 @@ class _StopPageState extends State<StopPage> {
     }
   }
 
+  initNextStops(api, departs) async {
+    List<Future> futures = [];
+    var nexts = {};
+    departs.forEach((dep) {
+      var ref = dep['JourneyDetailRef']['ref'];
+      futures.add(api.getJourney(ref).then((journey) {
+        var nextStop = getNextStop(journey, dep);
+        dep['nextStop'] = nextStop;
+        nexts[convertToStopId(nextStop['id'])] = nextStop;
+      }));
+    });
+    await Future.wait(futures);
+    
+    if (this.mounted) {
+      this.setState(() {
+        this.nextStops = nexts.values.toList();
+      });
+    }
+  }
+  
+  getNextStop(journey, dep) {
+    var stops = journey["Stop"];
+    var stopIndex = stops.indexWhere((stop) => stop['id'] == dep['stopid']);
+    if (stopIndex >= 0 && stops.length > stopIndex + 1) {
+      var stop = stops[stopIndex + 1];
+      stop['name'] = removeGothenburg(stop['name']);
+      return stop;
+    }
+    return null;
+  }
+
+  convertToStopId(String id) {
+    var intId = int.parse(id);
+    return '${(intId / 1000).round()}';
+  }
+
   @override
   Widget build(BuildContext context) {
     var items = <DepartureItem>[];
     departures.forEach((dep) {
-      items.add(DepartureItem(dep, context));
+      if (this.activeNextStopTags.length == 0 || this.activeNextStopTags.containsKey(dep['nextStop']['id'])) {
+        items.add(DepartureItem(dep, context));
+      }
     });
 
-    var _tags = this.directions.map((dir) => Tag(title: dir['name'])).toList();
-    var directionsView = SelectableTags(
+    this.nextStops.sort((a, b) {
+      return a['name'].toLowerCase().compareTo(b['name'].toLowerCase());
+    });
+    var _tags = this.nextStops.map((nextStop) {
+      var id = int.parse(nextStop['id']);
+      return Tag(title: nextStop['name'], id: id, active: false);
+    }).toList();
+    var nextStopView = SingleChildScrollView(child: SelectableTags(
       tags: _tags,
-      onPressed: (tag){
-        print(tag);
+      onPressed: (tag) {
+        this.setState(() {
+          if (tag.active) {
+            this.activeNextStopTags['${tag.id}'] = tag;
+          } else {
+            this.activeNextStopTags.remove('${tag.id}');
+          }
+        });
       },
-    );
+    ));
 
     Widget listView = ListView.builder(
         itemCount: items.length,
@@ -82,9 +125,9 @@ class _StopPageState extends State<StopPage> {
         }
     );
 
-    if (this.directions.length > 0) {
+    if (this.nextStops.length > 0) {
       listView = Column(children: <Widget>[
-        directionsView,
+        nextStopView,
         Expanded(child: listView)
       ]);
     }
@@ -103,7 +146,7 @@ class _StopPageState extends State<StopPage> {
 
     return Scaffold(
         appBar: AppBar(
-            title: Text(this.widget.stop['name']),
+            title: Text(removeGothenburg(this.widget.stop['name'])),
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.refresh),
@@ -114,6 +157,13 @@ class _StopPageState extends State<StopPage> {
         ),
         body: SafeArea(child: this.departures.length == 0 ? loader : listView)
     );
+  }
+
+  removeGothenburg(name) {
+    if (name.endsWith(', Göteborg')) {
+      name = name.substring(0, name.length - ', Göteborg'.length);
+    }
+    return name;
   }
 
   _onRefresh() async {
