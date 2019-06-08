@@ -104,7 +104,8 @@ class _StopPageState extends State<StopPage> {
       var id = int.parse(nextStop['id']);
       return Tag(title: nextStop['name'], id: id, active: false);
     }).toList();
-    var nextStopView = SingleChildScrollView(child: SelectableTags(
+
+    var tagsView = SelectableTags(
       tags: _tags,
       onPressed: (tag) {
         this.setState(() {
@@ -115,22 +116,29 @@ class _StopPageState extends State<StopPage> {
           }
         });
       },
-    ));
-
-    Widget listView = ListView.builder(
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return item.build();
-        }
+    );
+    var nextStopView = Container(
+        height: 50,
+        child: SingleChildScrollView(
+            child: _tags.length > 0 ? tagsView : Align(
+                alignment: Alignment.bottomCenter,
+                child: Text("Directions",
+                    style: TextStyle(fontSize: 16)
+                )
+            )
+        )
     );
 
-    if (this.nextStops.length > 0) {
-      listView = Column(children: <Widget>[
-        nextStopView,
-        Expanded(child: listView)
-      ]);
-    }
+    var listView = Column(children: <Widget>[
+      nextStopView,
+      Expanded(child:  ListView.builder(
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return item.build();
+          }
+      ))
+    ]);
 
     var loader = Padding(
         padding: EdgeInsets.all(20.0),
@@ -147,13 +155,7 @@ class _StopPageState extends State<StopPage> {
     return Scaffold(
         appBar: AppBar(
             title: Text(removeGothenburg(this.widget.stop['name'])),
-            actions: <Widget>[
-              IconButton(
-                icon: Icon(Icons.refresh),
-                tooltip: 'Open shopping cart',
-                onPressed: _onRefresh,
-              ),
-            ],
+            actions: [],
         ),
         body: SafeArea(child: this.departures.length == 0 ? loader : listView)
     );
