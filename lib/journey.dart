@@ -19,7 +19,6 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   Map<String, dynamic> departure;
   List stops = [];
-  Map<String, dynamic> journey = {};
   ScrollController _scrollController;
 
   _JourneyScreenState(this.departure);
@@ -38,7 +37,6 @@ class _JourneyScreenState extends State<JourneyScreen> {
     if (this.mounted) {
       this.setState(() {
         this.stops = journey['Stop'];
-        this.journey = journey;
       });
     }
   }

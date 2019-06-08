@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -20,9 +21,9 @@ class VasttrafikApi {
     return _callApi(url);
   }
 
-  getNearby(LatLng latLng, {limit = 10}) async {
+  getNearby(LatLng latLng) async {
     String path = "/location.nearbystops";
-    String queryString = "?originCoordLat=${latLng.latitude}&originCoordLong=${latLng.longitude}&format=json&maxNo=$limit";
+    String queryString = "?originCoordLat=${latLng.latitude}&originCoordLong=${latLng.longitude}&format=json&maxNo=50";
     String url = basePath + path + queryString;
     var res = await _callApi(url);
     var json = res.body;
@@ -44,12 +45,51 @@ class VasttrafikApi {
     String timeStr = timeFormatter.format(date);
 
     String path = "/departureBoard";
+    // &timeSpan=100
     String queryString = "?id=$id&date=$dateStr&time=$timeStr&format=json";
     String url = basePath + path + queryString;
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
     return map['DepartureBoard']['Departure'];
+  }
+
+  getDirections(departs, stop) async {
+    List<Future> futures = [];
+    var stopId = departs[0]['stopid'];
+    departs.forEach((dep) {
+      var ref = dep['JourneyDetailRef']['ref'];
+      futures.add(getJourney(ref).then((journey) {
+        return {'departure': dep, 'journey': journey};
+      }));
+    });
+    var res = await Future.wait(futures);
+    var dirs = {};
+    res.forEach((r) {
+      var journey = r['journey'];
+      var dep = r['departure'];
+      var stops = journey["Stop"];
+      var stopIndex = stops.indexWhere((stop) => stop['id'] == dep['stopid']);
+      if (stopIndex >= 0 && stops.length > stopIndex + 1) {
+        var stop = stops[stopIndex + 1];
+        stop['name'] = removeGothenburg(stop['name']);
+        dirs[convertToStopId(stop['id'])] = stop;
+      }
+    });
+
+    return dirs.values.toList();
+  }
+
+  removeGothenburg(name) {
+    if (name.endsWith(', Göteborg')) {
+      name = name.substring(0, name.length - ', Göteborg'.length);
+    }
+    return name;
+  }
+
+  convertToStopId(String id) {
+    var intId = int.parse(id);
+    return '${(intId / 1000).round()}';
   }
 
   _callApi(url) async {

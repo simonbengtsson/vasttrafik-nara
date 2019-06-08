@@ -4,6 +4,7 @@ import 'package:arctic_tern/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_tags/selectable_tags.dart';
 
 class StopPage extends StatefulWidget {
   StopPage({Key key, this.stop}) : super(key: key);
@@ -17,11 +18,22 @@ class StopPage extends StatefulWidget {
 class _StopPageState extends State<StopPage> {
 
   var departures = [];
+  var directions = [];
 
   @override
   initState() {
     super.initState();
     fetchData();
+  }
+
+  fetchDirections(departs, stop) async {
+    VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
+    var dirs = await api.getDirections(departs, stop);
+    if (this.mounted) {
+      this.setState(() {
+        this.directions = dirs;
+      });
+    }
   }
 
   fetchData() async {
@@ -35,12 +47,16 @@ class _StopPageState extends State<StopPage> {
       return aTime.compareTo(bTime) as int;
     });
 
+    const isProd = bool.fromEnvironment("dart.vm.product");
+    if (isProd) {
+      fetchDirections(departs, this.widget.stop);
+    }
+
     if (this.mounted) {
       this.setState(() {
         this.departures = departs;
       });
     }
-
   }
 
   @override
@@ -50,13 +66,28 @@ class _StopPageState extends State<StopPage> {
       items.add(DepartureItem(dep, context));
     });
 
-    var listView = ListView.builder(
+    var _tags = this.directions.map((dir) => Tag(title: dir['name'])).toList();
+    var directionsView = SelectableTags(
+      tags: _tags,
+      onPressed: (tag){
+        print(tag);
+      },
+    );
+
+    Widget listView = ListView.builder(
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
           return item.build();
         }
     );
+
+    if (this.directions.length > 0) {
+      listView = Column(children: <Widget>[
+        directionsView,
+        Expanded(child: listView)
+      ]);
+    }
 
     var loader = Padding(
         padding: EdgeInsets.all(20.0),

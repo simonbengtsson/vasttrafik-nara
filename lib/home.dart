@@ -41,7 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-    var stops = await api.getNearby(this.currentLocation, limit: 50) ?? [];
+    var stops = await api.getNearby(this.currentLocation) ?? [];
     stops = stops.where((stop) => stop['track'] == null).toList();
 
     this.setState(() {
