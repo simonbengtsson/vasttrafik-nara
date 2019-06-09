@@ -8,6 +8,7 @@ import 'package:location/location.dart';
 import 'package:latlong/latlong.dart';
 import 'package:device_info/device_info.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
@@ -113,15 +114,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),*/
               PopupMenuButton<String>(
-                onSelected: (choice) {
+                onSelected: (choice) async {
                   if (choice == 'Refresh') {
                     _onRefresh();
                   } else {
-                    print("Settings");
+                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    var isEnabled = prefs.getBool('isNextStopsEnabled') ?? false;
+                    prefs.setBool('isNextStopsEnabled', !isEnabled);
                   }
                 },
                 itemBuilder: (BuildContext context) {
-                  var choices = ["Refresh", "Settings"];
+                  var choices = ["Refresh", "Toggle next stops"];
                   return choices.map((String choice) {
                     return PopupMenuItem<String>(
                       value: choice,

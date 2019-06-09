@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_tags/selectable_tags.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StopPage extends StatefulWidget {
   StopPage({Key key, this.stop}) : super(key: key);
@@ -40,8 +41,9 @@ class _StopPageState extends State<StopPage> {
       return aTime.compareTo(bTime) as int;
     });
 
-    const isProd = bool.fromEnvironment("dart.vm.product");
-    if (!isProd) {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isEnabled = prefs.getBool('isNextStopsEnabled') ?? false;
+    if (!isEnabled) {
       initNextStops(api, departs);
     }
 
@@ -117,28 +119,27 @@ class _StopPageState extends State<StopPage> {
         });
       },
     );
-    var nextStopView = Container(
-        height: 50,
-        child: SingleChildScrollView(
-            child: _tags.length > 0 ? tagsView : Align(
-                alignment: Alignment.bottomCenter,
-                child: Text("Directions",
-                    style: TextStyle(fontSize: 16)
-                )
-            )
-        )
+
+    Widget listView = ListView.builder(
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return item.build();
+        }
     );
 
-    var listView = Column(children: <Widget>[
-      nextStopView,
-      Expanded(child:  ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return item.build();
-          }
-      ))
-    ]);
+    if (_tags.length > 0) {
+      listView = Column(children: <Widget>[
+        tagsView,
+        Expanded(child:  ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return item.build();
+            }
+        ))
+      ]);
+    }
 
     var loader = Padding(
         padding: EdgeInsets.all(20.0),
