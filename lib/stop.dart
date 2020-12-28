@@ -42,8 +42,8 @@ class _StopPageState extends State<StopPage> {
     });
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var isEnabled = prefs.getBool('isNextStopsEnabled') ?? false;
-    if (!isEnabled) {
+    var isEnabled = prefs.getBool('nextStopsFlag') ?? false;
+    if (isEnabled) {
       initNextStops(api, departs);
     }
 

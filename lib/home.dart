@@ -119,8 +119,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     _onRefresh();
                   } else {
                     SharedPreferences prefs = await SharedPreferences.getInstance();
-                    var isEnabled = prefs.getBool('isNextStopsEnabled') ?? false;
-                    prefs.setBool('isNextStopsEnabled', !isEnabled);
+                    var isEnabled = prefs.getBool('nextStopsFlag') ?? false;
+                    prefs.setBool('nextStopsFlag', !isEnabled);
                   }
                 },
                 itemBuilder: (BuildContext context) {
