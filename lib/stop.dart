@@ -105,6 +105,7 @@ class _StopPageState extends State<StopPage> {
 
     var tagsView = Tags(
       itemCount: this.nextStops.length,
+      horizontalScroll: true,
       itemBuilder: (int index) {
         var nextStop = this.nextStops[index];
         var id = int.parse(nextStop['id']);
@@ -115,7 +116,6 @@ class _StopPageState extends State<StopPage> {
           title: nextStop['name'],
           active: false,
           onPressed: (item) {
-            print(item);
             this.setState(() {
               if (item.active) {
                 this.activeNextStopTags[id.toString()] = item;
