@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:arctic_tern/env.dart';
-import 'package:arctic_tern/journey.dart';
-import 'package:arctic_tern/vasttrafik.dart';
+import 'package:vasttrafik_nara/env.dart';
+import 'package:vasttrafik_nara/journey.dart';
+import 'package:vasttrafik_nara/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_tags/selectable_tags.dart';
+/*import 'package:vasttrafik_nara/selectable_tags.dart';*/
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StopPage extends StatefulWidget {
@@ -102,6 +102,7 @@ class _StopPageState extends State<StopPage> {
     this.nextStops.sort((a, b) {
       return a['name'].toLowerCase().compareTo(b['name'].toLowerCase());
     });
+    /*
     var _tags = this.nextStops.map((nextStop) {
       var id = int.parse(nextStop['id']);
       return Tag(title: nextStop['name'], id: id, active: false);
@@ -119,6 +120,7 @@ class _StopPageState extends State<StopPage> {
         });
       },
     );
+     */
 
     Widget listView = ListView.builder(
         itemCount: items.length,
@@ -128,7 +130,7 @@ class _StopPageState extends State<StopPage> {
         }
     );
 
-    if (_tags.length > 0) {
+    /*if (_tags.length > 0) {
       listView = Column(children: <Widget>[
         tagsView,
         Expanded(child:  ListView.builder(
@@ -139,7 +141,7 @@ class _StopPageState extends State<StopPage> {
             }
         ))
       ]);
-    }
+    }*/
 
     var loader = Padding(
         padding: EdgeInsets.all(20.0),

@@ -1,4 +1,4 @@
-import 'package:arctic_tern/home.dart';
+import 'package:vasttrafik_nara/home.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:arctic_tern/env.dart';
-import 'package:arctic_tern/stop.dart';
-import 'package:arctic_tern/vasttrafik.dart';
+import 'package:vasttrafik_nara/env.dart';
+import 'package:vasttrafik_nara/stop.dart';
+import 'package:vasttrafik_nara/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
@@ -35,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (isPhysical) {
       var location = Location();
       var loc = await location.getLocation();
-      this.currentLocation = LatLng(loc['latitude'], loc['longitude']);
+      this.currentLocation = LatLng(loc.latitude, loc.longitude);
     } else {
       this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
       //this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken

@@ -1,9 +1,9 @@
-import 'package:arctic_tern/stop.dart';
-import 'package:arctic_tern/vasttrafik.dart';
+import 'package:vasttrafik_nara/stop.dart';
+import 'package:vasttrafik_nara/vasttrafik.dart';
+import 'package:vasttrafik_nara/env.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:arctic_tern/env.dart';
 
 class JourneyScreen extends StatefulWidget {
 
