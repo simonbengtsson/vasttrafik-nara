@@ -15,10 +15,10 @@ Google Play: https://play.google.com/store/apps/details?id=com.simonbengtsson.ar
 - Filter by direction
 - Line map
 
-### Dart cons
-- No non-nullable types (!)
-- Semi-colons and extra parenthesis
-- Underscore instead of private
+### Running
+- Clone and install Android Studio with the Flutter and Dart plugins
+- Create a env.dart from env.dart.sample
+- Choose a simulator or device and run the app through Android Studio
 
 ### Publish iOS
 - Update pubspec.yaml version number
@@ -29,3 +29,8 @@ Google Play: https://play.google.com/store/apps/details?id=com.simonbengtsson.ar
 - Update pubspec.yaml version number
 - flutter build apk
 - Upload apk to Google Play Console
+
+### Dart cons
+- No non-nullable types (!)
+- Semi-colons and extra parenthesis
+- Underscore instead of private

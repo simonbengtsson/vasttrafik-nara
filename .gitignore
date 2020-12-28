@@ -12,6 +12,12 @@
 vt
 env.dart
 
+# Flutter generated files (Added by Simon)
+flutter_export_environment.sh
+WorkspaceSettings.xcsettings
+.flutter-plugins-dependencies
+Flutter.podspec
+
 # IntelliJ related
 *.iml
 *.ipr
