@@ -6,7 +6,7 @@ import 'package:vasttrafik_nara/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-/*import 'package:vasttrafik_nara/selectable_tags.dart';*/
+import 'package:flutter_tags/flutter_tags.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StopPage extends StatefulWidget {
@@ -102,25 +102,31 @@ class _StopPageState extends State<StopPage> {
     this.nextStops.sort((a, b) {
       return a['name'].toLowerCase().compareTo(b['name'].toLowerCase());
     });
-    /*
-    var _tags = this.nextStops.map((nextStop) {
-      var id = int.parse(nextStop['id']);
-      return Tag(title: nextStop['name'], id: id, active: false);
-    }).toList();
 
-    var tagsView = SelectableTags(
-      tags: _tags,
-      onPressed: (tag) {
-        this.setState(() {
-          if (tag.active) {
-            this.activeNextStopTags['${tag.id}'] = tag;
-          } else {
-            this.activeNextStopTags.remove('${tag.id}');
-          }
-        });
+    var tagsView = Tags(
+      itemCount: this.nextStops.length,
+      itemBuilder: (int index) {
+        var nextStop = this.nextStops[index];
+        var id = int.parse(nextStop['id']);
+
+        return ItemTags(
+          key: Key(id.toString()),
+          index: index,
+          title: nextStop['name'],
+          active: false,
+          onPressed: (item) {
+            print(item);
+            this.setState(() {
+              if (item.active) {
+                this.activeNextStopTags[id.toString()] = item;
+              } else {
+                this.activeNextStopTags.remove(id.toString());
+              }
+            });
+          },
+        );
       },
     );
-     */
 
     Widget listView = ListView.builder(
         itemCount: items.length,
@@ -130,7 +136,7 @@ class _StopPageState extends State<StopPage> {
         }
     );
 
-    /*if (_tags.length > 0) {
+    if (nextStops.length > 0) {
       listView = Column(children: <Widget>[
         tagsView,
         Expanded(child:  ListView.builder(
@@ -141,7 +147,7 @@ class _StopPageState extends State<StopPage> {
             }
         ))
       ]);
-    }*/
+    }
 
     var loader = Padding(
         padding: EdgeInsets.all(20.0),
