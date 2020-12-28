@@ -26,6 +26,7 @@ Google Play: https://play.google.com/store/apps/details?id=com.simonbengtsson.ar
 - Archive and distribute through Xcode
 
 ### Publish Android
+- Create or verify key.properties content
 - Update pubspec.yaml version number
 - flutter build apk
 - Upload apk to Google Play Console
