@@ -29,7 +29,7 @@ Google Play: https://play.google.com/store/apps/details?id=com.simonbengtsson.ar
 - Create or verify key.properties content
 - Update pubspec.yaml version number
 - flutter build apk
-- Upload apk to Google Play Console
+- Create new release with apk in Google Play Console (Production -> New Release)
 
 ### Dart cons
 - No non-nullable types (!)
