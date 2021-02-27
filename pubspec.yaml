@@ -17,9 +17,9 @@ dependencies:
   location: ^3.2.1
   intl: any
   latlong: ^0.6.1
-  device_info: ^1.0.0
+  device_info: ^2.0.0
   auto_size_text: ^2.1.0
-  shared_preferences: ^0.5.3+1
+  shared_preferences: ^2.0.1
 
 dev_dependencies:
   flutter_test:
