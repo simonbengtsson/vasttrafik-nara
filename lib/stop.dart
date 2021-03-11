@@ -103,23 +103,26 @@ class _StopPageState extends State<StopPage> {
       return a['name'].toLowerCase().compareTo(b['name'].toLowerCase());
     });
 
-    List<dynamic> stops = this.nextStops.where((it) => it['id'] != "9022014001960003").toList();
-
     var tagsView = Tags(
-      itemCount: stops.length,
+      itemCount: this.nextStops.length,
       horizontalScroll: true,
       itemBuilder: (int index) {
-        var nextStop = stops[index];
+        var nextStop = this.nextStops[index];
         var id = int.parse(nextStop['id']);
 
-        print(nextStop['name'] + ' ' + id.toString() + ' ' + index.toString());
-
         return ItemTags(
-          key: Key(index.toString()),
+          key: Key(id.toString()),
           index: index,
-          title: "Hello",
+          title: nextStop['name'],
           active: false,
           onPressed: (item) {
+            this.setState(() {
+              if (item.active!) {
+                this.activeNextStopTags[id.toString()] = item;
+              } else {
+                this.activeNextStopTags.remove(id.toString());
+              }
+            });
           },
         );
       },
