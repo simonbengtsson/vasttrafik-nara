@@ -14,12 +14,12 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
   flutter_tags: "^0.4.9+1"
-  location: ^3.2.1
+  location: ^4.1.1
   intl: any
-  latlong: ^0.6.1
+  latlong2: ^0.8.0
   device_info: ^2.0.0
   auto_size_text: ^2.1.0
-  shared_preferences: ^2.0.1
+  shared_preferences: ^2.0.4
 
 dev_dependencies:
   flutter_test:

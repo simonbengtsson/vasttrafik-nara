@@ -1,9 +1,7 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:latlong/latlong.dart';
-import 'package:flutter/foundation.dart';
+import 'package:latlong2/latlong.dart';
 
 class VasttrafikApi {
 
@@ -61,9 +59,10 @@ class VasttrafikApi {
     return name;
   }
 
-  _callApi(url) async {
+  _callApi(String url) async {
+    Uri uri = Uri.parse(url);
     String token = await _authorize();
-    return http.get(url, headers: {'Authorization': "Bearer $token"});
+    return http.get(uri, headers: {'Authorization': "Bearer $token"});
   }
 
   _authorize() async {
@@ -77,7 +76,8 @@ class VasttrafikApi {
     String authHeader = "Basic " + base64.encode(utf8.encode(str));
 
     String url = 'https://api.vasttrafik.se/token?grant_type=client_credentials&scope=device_' + deviceId;
-    var res = await http.post(url, headers: {'Authorization': authHeader});
+    Uri uri = Uri.parse(url);
+    var res = await http.post(uri, headers: {'Authorization': authHeader});
 
     var json = jsonDecode(res.body);
     return json['access_token'];

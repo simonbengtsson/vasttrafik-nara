@@ -5,7 +5,7 @@ import 'package:vasttrafik_nara/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
-import 'package:latlong/latlong.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:device_info/device_info.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -178,6 +178,7 @@ class StopHeadingItem {
     if (name.endsWith(', Göteborg')) {
       name = name.substring(0, name.length - ', Göteborg'.length);
     }
+
 
     final Distance distance = new Distance();
     var offset = distance.as(
