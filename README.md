@@ -22,8 +22,8 @@ Google Play: https://play.google.com/store/apps/details?id=com.simonbengtsson.ar
 
 ### Publish iOS
 - Update pubspec.yaml version number
-- flutter build ios
-- Archive and distribute through Xcode
+- flutter build ipa
+- Open archive in xcode and distribute
 
 ### Publish Android
 - Create or verify key.properties content
@@ -32,6 +32,5 @@ Google Play: https://play.google.com/store/apps/details?id=com.simonbengtsson.ar
 - Create new release with apk in Google Play Console (Production -> New Release)
 
 ### Dart cons
-- No non-nullable types (!)
 - Semi-colons and extra parenthesis
 - Underscore instead of private
