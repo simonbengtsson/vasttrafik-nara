@@ -16,7 +16,10 @@ class VasttrafikApi {
     String path = "/location.name";
     String queryString = "?input=$query&format=json";
     String url = basePath + path + queryString;
-    return _callApi(url);
+    var res = await _callApi(url);
+    var json = res.body;
+    var map = jsonDecode(json);
+    return map['LocationList']['StopLocation'];
   }
 
   getNearby(LatLng latLng) async {
