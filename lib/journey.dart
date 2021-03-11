@@ -18,8 +18,8 @@ class JourneyScreen extends StatefulWidget {
 class _JourneyScreenState extends State<JourneyScreen> {
 
   Map<String, dynamic> departure;
-  List stops = [];
-  ScrollController _scrollController;
+  List? stops = [];
+  ScrollController? _scrollController;
 
   _JourneyScreenState(this.departure);
 
@@ -52,7 +52,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
     Color fgColor = hexColor(this.departure['fgColor']);
     var lum = fgColor.computeLuminance();
 
-    var stopIndex = this.stops.indexWhere((stop) => stop['id'] == this.departure['stopid']);
+    var stopIndex = this.stops!.indexWhere((stop) => stop['id'] == this.departure['stopid']);
     this._scrollController = ScrollController(initialScrollOffset: stopIndex * 56.0);
 
     var loader = Padding(
@@ -68,11 +68,11 @@ class _JourneyScreenState extends State<JourneyScreen> {
     );
 
     var listView = stopIndex < 0 ? loader : ListView.builder(
-        itemCount: this.stops.length,
+        itemCount: this.stops!.length,
         controller: this._scrollController,
 
         itemBuilder: (context, index) {
-          final stop = this.stops[index];
+          final stop = this.stops![index];
           var style = TextStyle(
             fontSize: 18.0,
             color: stop['id'] == this.departure['stopid'] ? Colors.black : Colors.black.withOpacity(index < stopIndex ? 0.3 : 0.8),

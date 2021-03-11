@@ -11,7 +11,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key}) : super(key: key);
+  MyHomePage({Key? key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -21,7 +21,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   var fetchComplete = false;
   var nearbyStops = [];
-  LatLng currentLocation;
+  LatLng? currentLocation;
 
   @override
   initState() {
@@ -35,14 +35,14 @@ class _MyHomePageState extends State<MyHomePage> {
     if (isPhysical) {
       var location = Location();
       var loc = await location.getLocation();
-      this.currentLocation = LatLng(loc.latitude, loc.longitude);
+      this.currentLocation = LatLng(loc.latitude!, loc.longitude!);
     } else {
       this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
       //this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken
     }
 
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-    var stops = await api.getNearby(this.currentLocation) ?? [];
+    var stops = await api.getNearby(this.currentLocation!) ?? [];
     stops = stops.where((stop) => stop['track'] == null).toList();
 
     this.setState(() {
@@ -124,7 +124,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                 },
                 itemBuilder: (BuildContext context) {
-                  var choices = ["Refresh", "Toggle next stops"];
+                  //var choices = ["Refresh", "Toggle next stops"];
+                  var choices = ["Refresh"];
                   return choices.map((String choice) {
                     return PopupMenuItem<String>(
                       value: choice,
@@ -152,8 +153,8 @@ class _MyHomePageState extends State<MyHomePage> {
 class Choice {
   const Choice({this.title, this.icon});
 
-  final String title;
-  final IconData icon;
+  final String? title;
+  final IconData? icon;
 }
 
 const List<Choice> choices = const <Choice>[
@@ -168,7 +169,7 @@ const List<Choice> choices = const <Choice>[
 class StopHeadingItem {
   final Map stop;
   final BuildContext context;
-  final LatLng currentLocation;
+  final LatLng? currentLocation;
 
   StopHeadingItem(this.stop, this.currentLocation, this.context);
 
@@ -184,7 +185,7 @@ class StopHeadingItem {
     var offset = distance.as(
         LengthUnit.Meter,
         LatLng(double.parse(stop['lat']), double.parse(stop['lon'])),
-        this.currentLocation
+        this.currentLocation!
     );
 
     return ListTile(
@@ -206,7 +207,7 @@ class StopHeadingItem {
                   minFontSize: 16.0,
                   style: Theme.of(context).textTheme.headline
               )),
-              Text("${offset.round()} m", style: Theme.of(context).textTheme.headline.copyWith(
+              Text("${offset.round()} m", style: Theme.of(context).textTheme.headline!.copyWith(
                   color: Colors.grey
               ))
             ]

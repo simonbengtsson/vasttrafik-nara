@@ -10,7 +10,7 @@ import 'package:flutter_tags/flutter_tags.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StopPage extends StatefulWidget {
-  StopPage({Key key, this.stop}) : super(key: key);
+  StopPage({Key? key, this.stop}) : super(key: key);
 
   var stop;
 
@@ -36,9 +36,9 @@ class _StopPageState extends State<StopPage> {
     var stopId = this.widget.stop['id'];
     var departs = await api.getDepartures(stopId, DateTime.now()) ?? [];
     departs.sort((a, b) {
-      var aTime = a['rtTime'] ?? a['time'];
-      var bTime = b['rtTime'] ?? b['time'];
-      return aTime.compareTo(bTime) as int;
+      String aTime = a['rtTime'] ?? a['time'];
+      String bTime = b['rtTime'] ?? b['time'];
+      return aTime.compareTo(bTime);
     });
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -103,26 +103,23 @@ class _StopPageState extends State<StopPage> {
       return a['name'].toLowerCase().compareTo(b['name'].toLowerCase());
     });
 
+    List<dynamic> stops = this.nextStops.where((it) => it['id'] != "9022014001960003").toList();
+
     var tagsView = Tags(
-      itemCount: this.nextStops.length,
+      itemCount: stops.length,
       horizontalScroll: true,
       itemBuilder: (int index) {
-        var nextStop = this.nextStops[index];
+        var nextStop = stops[index];
         var id = int.parse(nextStop['id']);
 
+        print(nextStop['name'] + ' ' + id.toString() + ' ' + index.toString());
+
         return ItemTags(
-          key: Key(id.toString()),
+          key: Key(index.toString()),
           index: index,
-          title: nextStop['name'],
+          title: "Hello",
           active: false,
           onPressed: (item) {
-            this.setState(() {
-              if (item.active) {
-                this.activeNextStopTags[id.toString()] = item;
-              } else {
-                this.activeNextStopTags.remove(id.toString());
-              }
-            });
           },
         );
       },
@@ -191,7 +188,7 @@ class DepartureItem {
 
   DepartureItem(this.departure, this.context);
 
-  String getRelativeTime(Map<String, dynamic> departure) {
+  String? getRelativeTime(Map<String, dynamic> departure) {
     var timeStr = departure['rtTime'] ?? departure['time'];
     var dateStr = departure['date'] + ' ' + timeStr;
     DateFormat format = new DateFormat("yyyy-MM-dd HH:mm");
@@ -226,7 +223,7 @@ class DepartureItem {
       direction = direction.substring(0, viaIndex).trim();
     }
 
-    var minStr = getRelativeTime(departure);
+    var minStr = getRelativeTime(departure as Map<String, dynamic>)!;
     var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
     return Container(
         decoration: BoxDecoration (
@@ -236,7 +233,7 @@ class DepartureItem {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => JourneyScreen(departure)),
+              MaterialPageRoute(builder: (context) => JourneyScreen(departure as Map<String, dynamic>)),
             );
           },
           leading: Text(departure['sname'], style: textStyle),
