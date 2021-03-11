@@ -1,13 +1,12 @@
 import 'dart:async';
 
-import 'package:vasttrafik_nara/env.dart';
-import 'package:vasttrafik_nara/journey.dart';
-import 'package:vasttrafik_nara/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_tags/flutter_tags.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vasttrafik_nara/env.dart';
+import 'package:vasttrafik_nara/journey.dart';
+import 'package:vasttrafik_nara/vasttrafik.dart';
 
 class StopPage extends StatefulWidget {
   StopPage({Key? key, this.stop}) : super(key: key);
@@ -19,7 +18,6 @@ class StopPage extends StatefulWidget {
 }
 
 class _StopPageState extends State<StopPage> {
-
   var departures = [];
   var nextStops = [];
   var activeNextStopTags = {};
@@ -42,7 +40,7 @@ class _StopPageState extends State<StopPage> {
     });
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var isEnabled = prefs.getBool('nextStopsFlag') ?? false;
+    var isEnabled = true; //prefs.getBool('nextStopsFlag') ?? false;
     if (isEnabled) {
       initNextStops(api, departs);
     }
@@ -66,14 +64,14 @@ class _StopPageState extends State<StopPage> {
       }));
     });
     await Future.wait(futures);
-    
+
     if (this.mounted) {
       this.setState(() {
         this.nextStops = nexts.values.toList();
       });
     }
   }
-  
+
   getNextStop(journey, dep) {
     var stops = journey["Stop"];
     var stopIndex = stops.indexWhere((stop) => stop['id'] == dep['stopid']);
@@ -94,7 +92,8 @@ class _StopPageState extends State<StopPage> {
   Widget build(BuildContext context) {
     var items = <DepartureItem>[];
     departures.forEach((dep) {
-      if (this.activeNextStopTags.length == 0 || this.activeNextStopTags.containsKey(dep['nextStop']['id'])) {
+      if (this.activeNextStopTags.length == 0 ||
+          this.activeNextStopTags.containsKey(dep['nextStop']['id'])) {
         items.add(DepartureItem(dep, context));
       }
     });
@@ -103,29 +102,52 @@ class _StopPageState extends State<StopPage> {
       return a['name'].toLowerCase().compareTo(b['name'].toLowerCase());
     });
 
-    var tagsView = Tags(
-      itemCount: this.nextStops.length,
-      horizontalScroll: true,
-      itemBuilder: (int index) {
-        var nextStop = this.nextStops[index];
-        var id = int.parse(nextStop['id']);
-
-        return ItemTags(
-          key: Key(id.toString()),
-          index: index,
-          title: nextStop['name'],
-          active: false,
-          onPressed: (item) {
-            this.setState(() {
-              if (item.active!) {
-                this.activeNextStopTags[id.toString()] = item;
-              } else {
-                this.activeNextStopTags.remove(id.toString());
-              }
-            });
-          },
-        );
-      },
+    List<TextButton> buttons = this.nextStops.map((stop) {
+      String id = stop['id'];
+      return TextButton(
+          onPressed: () => {
+                this.setState(() {
+                  print(this
+                      .activeNextStopTags
+                      .values
+                      .map((it) => it['name'])
+                      .join(', '));
+                  if (this.activeNextStopTags[id] == null) {
+                    this.activeNextStopTags[id] = stop;
+                  } else {
+                    this.activeNextStopTags.remove(id);
+                  }
+                })
+              },
+          child: Text(stop['name'],
+              style: TextStyle(
+                  color: this.activeNextStopTags[id] == null
+                      ? Colors.grey
+                      : Colors.black,
+                  fontSize: 16,
+                  fontWeight: this.activeNextStopTags[id] == null
+                      ? FontWeight.bold
+                      : FontWeight.bold)));
+    }).toList();
+    var tagsView = SizedBox(
+      height: 70.0,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 0,
+              blurRadius: 5,
+              offset: Offset(0, 0),
+            ),
+          ],
+        ),
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: buttons
+        ),
+      ),
     );
 
     Widget listView = ListView.builder(
@@ -133,41 +155,30 @@ class _StopPageState extends State<StopPage> {
         itemBuilder: (context, index) {
           final item = items[index];
           return item.build();
-        }
-    );
-
-    if (nextStops.length > 0) {
-      listView = Column(children: <Widget>[
-        tagsView,
-        Expanded(child:  ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return item.build();
-            }
-        ))
-      ]);
-    }
+        });
 
     var loader = Padding(
         padding: EdgeInsets.all(20.0),
         child: Center(
-          child: Column(
-              children: <Widget>[CupertinoActivityIndicator(
-                  animating: true,
-                  radius: 15.0
-              )]
-          )
-        )
-    );
+            child: Column(children: <Widget>[
+              CupertinoActivityIndicator(animating: true, radius: 15.0)
+            ])));
+
+    var cmp = this.departures.length == 0 ? loader : Expanded(
+        child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return item.build();
+            }));
+    listView = Column(children: <Widget>[tagsView, cmp]);
 
     return Scaffold(
         appBar: AppBar(
-            title: Text(removeGothenburg(this.widget.stop['name'])),
-            actions: [],
+          title: Text(removeGothenburg(this.widget.stop['name'])),
+          actions: [],
         ),
-        body: SafeArea(child: this.departures.length == 0 ? loader : listView)
-    );
+        body: SafeArea(child: listView));
   }
 
   removeGothenburg(name) {
@@ -198,7 +209,8 @@ class DepartureItem {
     var date = format.parse(dateStr);
     var now = DateTime.now();
 
-    var minDiff = (date.millisecondsSinceEpoch - now.millisecondsSinceEpoch) / 1000 / 60;
+    var minDiff =
+        (date.millisecondsSinceEpoch - now.millisecondsSinceEpoch) / 1000 / 60;
 
     var minStr = timeStr;
     if (minDiff <= 0) {
@@ -222,28 +234,35 @@ class DepartureItem {
     var subtitle = 'Läge ${departure['track']}';
     final viaIndex = direction.indexOf(' via ');
     if (viaIndex > 0) {
-      subtitle = subtitle + ' • ' + direction.substring(viaIndex, direction.length).trim();
+      subtitle = subtitle +
+          ' • ' +
+          direction.substring(viaIndex, direction.length).trim();
       direction = direction.substring(0, viaIndex).trim();
     }
 
     var minStr = getRelativeTime(departure as Map<String, dynamic>)!;
-    var textStyle = TextStyle(color: hexColor(departure['bgColor']), fontSize: 18.0, fontWeight: FontWeight.bold);
+    var textStyle = TextStyle(
+        color: hexColor(departure['bgColor']),
+        fontSize: 18.0,
+        fontWeight: FontWeight.bold);
     return Container(
-        decoration: BoxDecoration (
-            color: hexColor(departure['fgColor']),
+        decoration: BoxDecoration(
+          color: hexColor(departure['fgColor']),
         ),
         child: ListTile(
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => JourneyScreen(departure as Map<String, dynamic>)),
+              MaterialPageRoute(
+                  builder: (context) =>
+                      JourneyScreen(departure as Map<String, dynamic>)),
             );
           },
           leading: Text(departure['sname'], style: textStyle),
           title: Text(direction, style: textStyle),
-          subtitle: Text(subtitle, style: TextStyle(color: hexColor(departure['bgColor']))),
+          subtitle: Text(subtitle,
+              style: TextStyle(color: hexColor(departure['bgColor']))),
           trailing: Text(minStr, style: textStyle),
-        )
-    );
+        ));
   }
 }
