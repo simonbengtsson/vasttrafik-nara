@@ -111,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
           decoration: InputDecoration(
             icon: Icon(Icons.search, color: Colors.grey),
             border: InputBorder.none,
-            hintText: 'Search for stops...',
+            hintText: 'Search for stops',
           )),
       suggestionsCallback: (pattern) async {
         VasttrafikApi api =
@@ -132,7 +132,6 @@ class _MyHomePageState extends State<MyHomePage> {
       },
       onSuggestionSelected: (stop) {
         _controller.text = "";
-        print("Selected ${stop.toString()}");
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => StopPage(stop: stop)),
@@ -146,17 +145,6 @@ class _MyHomePageState extends State<MyHomePage> {
             title: SizedBox(height: 50, child: typeAhead),
             brightness: Brightness.light,
             actions: <Widget>[
-              /*IconButton(
-                      icon: Icon(Icons.search),
-                      color: Colors.black,
-                      tooltip: 'Search',
-                      onPressed: () {
-                        setState(() {
-                          this.isSearching = true;
-                        });
-                        print("Search...");
-                      },
-                    ),*/
               IconButton(
                 icon: Icon(Icons.refresh),
                 color: Colors.black,

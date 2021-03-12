@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/journey.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
@@ -18,7 +17,7 @@ class StopPage extends StatefulWidget {
 }
 
 class _StopPageState extends State<StopPage> {
-  var departures = [];
+  List<Departure> departures = [];
   var nextStops = [];
   var activeNextStopTags = {};
 
@@ -39,17 +38,14 @@ class _StopPageState extends State<StopPage> {
       return aTime.compareTo(bTime);
     });
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var isEnabled = true; //prefs.getBool('nextStopsFlag') ?? false;
-    if (isEnabled) {
-      initNextStops(api, departs);
-    }
+    var departs2 =
+        departs.map((it) => Departure(it)).toList().cast<Departure>();
+    var nextStops = await initNextStops(api, departs);
 
-    if (this.mounted) {
-      this.setState(() {
-        this.departures = departs;
-      });
-    }
+    this.setState(() {
+      this.nextStops = nextStops;
+      this.departures = departs2;
+    });
   }
 
   initNextStops(api, departs) async {
@@ -60,16 +56,15 @@ class _StopPageState extends State<StopPage> {
       futures.add(api.getJourney(ref).then((journey) {
         var nextStop = getNextStop(journey, dep);
         dep['nextStop'] = nextStop;
+        var saved = nextStop['departures'] ?? [];
+        saved.add(dep);
+        nextStop['departures'] = saved;
         nexts[convertToStopId(nextStop['id'])] = nextStop;
       }));
     });
     await Future.wait(futures);
 
-    if (this.mounted) {
-      this.setState(() {
-        this.nextStops = nexts.values.toList();
-      });
-    }
+    return nexts.values.toList();
   }
 
   getNextStop(journey, dep) {
@@ -90,10 +85,110 @@ class _StopPageState extends State<StopPage> {
 
   @override
   Widget build(BuildContext context) {
+    return buildSectionList(context);
+    //return buildList(context);
+  }
+
+  Widget buildChip(Departure dep) {
+    return Padding(
+      padding: EdgeInsets.only(right: 10),
+      child: TextButton(
+          child: Wrap(children: [
+            Container(
+                padding: EdgeInsets.all(7),
+                constraints: BoxConstraints(minWidth: 40),
+                decoration: BoxDecoration(
+                    color: dep.fgColor,
+                    borderRadius: BorderRadius.all(Radius.circular(5))),
+                child: Text(dep.shortName,
+                    textAlign: TextAlign.center,
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.w900))),
+            Padding(
+                padding: EdgeInsets.all(7),
+                child: Text(dep.time,
+                    style: TextStyle(
+                        color: Colors.black.withOpacity(0.6), fontSize: 20)))
+          ]),
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => JourneyScreen(dep.data),
+                ));
+          },
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.all(5),
+            primary: dep.bgColor,
+            backgroundColor: Color.fromRGBO(200, 200, 200, 0.3),
+          )),
+    );
+  }
+
+  Widget buildSection(nextStop) {
+    List deps = this
+        .departures
+        .where((it) => it.nextStop['id'] == nextStop['id'])
+        .toList();
+    var depw = deps.map((it) => buildChip(it) as Widget);
+    return Padding(
+      padding: EdgeInsets.all(20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Padding(
+            padding: EdgeInsets.only(bottom: 10),
+            child: Text(nextStop['name'],
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
+        Wrap(children: depw.toList(), runSpacing: 7, spacing: -3),
+      ]),
+    );
+  }
+
+  Widget buildSectionList(BuildContext context) {
     var items = <DepartureItem>[];
     departures.forEach((dep) {
       if (this.activeNextStopTags.length == 0 ||
-          this.activeNextStopTags.containsKey(dep['nextStop']['id'])) {
+          this.activeNextStopTags.containsKey(dep.nextStop['id'])) {
+        items.add(DepartureItem(dep, context));
+      }
+    });
+
+    this.nextStops.sort((a, b) {
+      return a['name'].toLowerCase().compareTo(b['name'].toLowerCase());
+    });
+
+    var loader = Padding(
+        padding: EdgeInsets.all(20.0),
+        child: Center(
+            child: Column(children: <Widget>[
+          CupertinoActivityIndicator(animating: true, radius: 15.0)
+        ])));
+
+    var main = this.nextStops.length == 0
+        ? loader
+        : ListView(
+            children: this.nextStops.map((it) => buildSection(it)).toList());
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(removeGothenburg(this.widget.stop['name'])),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.refresh),
+              color: Colors.black,
+              tooltip: 'Refresh',
+              onPressed: () {
+                _onRefresh();
+              },
+            ),
+          ],
+        ),
+        body: SafeArea(child: main));
+  }
+
+  Widget buildList(BuildContext context) {
+    var items = <DepartureItem>[];
+    departures.forEach((dep) {
+      if (this.activeNextStopTags.length == 0 ||
+          this.activeNextStopTags.containsKey(dep.nextStop['id'])) {
         items.add(DepartureItem(dep, context));
       }
     });
@@ -107,11 +202,6 @@ class _StopPageState extends State<StopPage> {
       return TextButton(
           onPressed: () => {
                 this.setState(() {
-                  print(this
-                      .activeNextStopTags
-                      .values
-                      .map((it) => it['name'])
-                      .join(', '));
                   if (this.activeNextStopTags[id] == null) {
                     this.activeNextStopTags[id] = stop;
                   } else {
@@ -143,10 +233,7 @@ class _StopPageState extends State<StopPage> {
             ),
           ],
         ),
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          children: buttons
-        ),
+        child: ListView(scrollDirection: Axis.horizontal, children: buttons),
       ),
     );
 
@@ -161,16 +248,18 @@ class _StopPageState extends State<StopPage> {
         padding: EdgeInsets.all(20.0),
         child: Center(
             child: Column(children: <Widget>[
-              CupertinoActivityIndicator(animating: true, radius: 15.0)
-            ])));
+          CupertinoActivityIndicator(animating: true, radius: 15.0)
+        ])));
 
-    var cmp = this.departures.length == 0 ? loader : Expanded(
-        child: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return item.build();
-            }));
+    var cmp = this.departures.length == 0
+        ? loader
+        : Expanded(
+            child: ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return item.build();
+                }));
     listView = Column(children: <Widget>[tagsView, cmp]);
 
     return Scaffold(
@@ -191,23 +280,48 @@ class _StopPageState extends State<StopPage> {
   _onRefresh() async {
     this.setState(() {
       this.departures = [];
+      this.nextStops = [];
     });
     await fetchData();
   }
 }
 
-class DepartureItem {
-  final Map departure;
-  final BuildContext context;
+class Departure {
+  final Map<String, dynamic> data;
 
-  DepartureItem(this.departure, this.context);
+  Departure(this.data);
 
-  String? getRelativeTime(Map<String, dynamic> departure) {
-    var timeStr = departure['rtTime'] ?? departure['time'];
-    var dateStr = departure['date'] + ' ' + timeStr;
+  Map get nextStop {
+    return data['nextStop'];
+  }
+
+  String get shortName {
+    return data['sname'];
+  }
+
+  String get direction {
+    return data['direction'];
+  }
+
+  String get track {
+    return data['track'];
+  }
+
+  Color get bgColor {
+    return _hexColor(data['bgColor']);
+  }
+
+  Color get fgColor {
+    return _hexColor(data['fgColor']);
+  }
+
+  String get time {
+    var timeStr = data['rtTime'] ?? data['time'];
+    var dateStr = data['date'] + ' ' + timeStr;
     DateFormat format = new DateFormat("yyyy-MM-dd HH:mm");
     var date = format.parse(dateStr);
-    var now = DateTime.now();
+    //var now = DateTime.now();
+    var now = DateTime.parse("2021-03-12 05:00:00");
 
     var minDiff =
         (date.millisecondsSinceEpoch - now.millisecondsSinceEpoch) / 1000 / 60;
@@ -222,16 +336,23 @@ class DepartureItem {
     return minStr;
   }
 
-  hexColor(hexStr) {
+  _hexColor(hexStr) {
     var hex = 'FF' + hexStr.substring(1);
     var numColor = int.parse(hex, radix: 16);
     return Color(numColor);
   }
+}
+
+class DepartureItem {
+  final Departure departure;
+  final BuildContext context;
+
+  DepartureItem(this.departure, this.context);
 
   @override
   Widget build() {
-    String direction = departure['direction'];
-    var subtitle = 'Läge ${departure['track']}';
+    var subtitle = 'Läge ${departure.track}';
+    var direction = departure.direction;
     final viaIndex = direction.indexOf(' via ');
     if (viaIndex > 0) {
       subtitle = subtitle +
@@ -240,29 +361,24 @@ class DepartureItem {
       direction = direction.substring(0, viaIndex).trim();
     }
 
-    var minStr = getRelativeTime(departure as Map<String, dynamic>)!;
     var textStyle = TextStyle(
-        color: hexColor(departure['bgColor']),
-        fontSize: 18.0,
-        fontWeight: FontWeight.bold);
+        color: departure.bgColor, fontSize: 18.0, fontWeight: FontWeight.bold);
     return Container(
         decoration: BoxDecoration(
-          color: hexColor(departure['fgColor']),
+          color: departure.fgColor,
         ),
         child: ListTile(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      JourneyScreen(departure as Map<String, dynamic>)),
+                  builder: (context) => JourneyScreen(departure.data)),
             );
           },
-          leading: Text(departure['sname'], style: textStyle),
+          leading: Text(departure.shortName, style: textStyle),
           title: Text(direction, style: textStyle),
-          subtitle: Text(subtitle,
-              style: TextStyle(color: hexColor(departure['bgColor']))),
-          trailing: Text(minStr, style: textStyle),
+          subtitle: Text(subtitle, style: TextStyle(color: departure.bgColor)),
+          trailing: Text(departure.time, style: textStyle),
         ));
   }
 }
