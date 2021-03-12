@@ -320,8 +320,8 @@ class Departure {
     var dateStr = data['date'] + ' ' + timeStr;
     DateFormat format = new DateFormat("yyyy-MM-dd HH:mm");
     var date = format.parse(dateStr);
-    //var now = DateTime.now();
-    var now = DateTime.parse("2021-03-12 05:00:00");
+    var now = DateTime.now();
+    //var now = DateTime.parse("2021-03-12 05:00:00");
 
     var minDiff =
         (date.millisecondsSinceEpoch - now.millisecondsSinceEpoch) / 1000 / 60;
