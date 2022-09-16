@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
@@ -101,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final _controller = TextEditingController();
     var typeAhead = TypeAheadFormField(
       textFieldConfiguration: TextFieldConfiguration(
-        controller: _controller,
+          controller: _controller,
           style: DefaultTextStyle.of(context).style.copyWith(
                 fontSize: 17,
                 color: Colors.black,
@@ -141,9 +142,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
         appBar: AppBar(
-            //leading: Icon(Icons.search),
             title: SizedBox(height: 50, child: typeAhead),
-            brightness: Brightness.light,
+            systemOverlayStyle: SystemUiOverlayStyle.light,
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.refresh),
@@ -241,11 +241,11 @@ class StopHeadingItem {
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           minFontSize: 16.0,
-                          style: Theme.of(context).textTheme.headline)),
+                          style: Theme.of(context).textTheme.headline6!)),
                   Text("${offset.round()} m",
                       style: Theme.of(context)
                           .textTheme
-                          .headline!
+                          .headline6!
                           .copyWith(color: Colors.grey))
                 ])));
   }

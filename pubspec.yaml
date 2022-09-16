@@ -9,18 +9,18 @@ environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  http: ^0.13.0
+  http: ^0.13.5
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^1.0.5
   flutter_tags: ^1.0.0-nullsafety.1
-  location: ^4.1.1
+  location: ^4.4.0
   intl: ^0.17.0
-  latlong2: ^0.8.0
-  device_info: ^2.0.0
-  auto_size_text: ^3.0.0-nullsafety.0
-  shared_preferences: ^2.0.4
-  flutter_typeahead: ^3.0.0-nullsafety.0
+  latlong2: ^0.8.1
+  device_info: ^2.0.3
+  auto_size_text: ^3.0.0
+  shared_preferences: ^2.0.15
+  flutter_typeahead: ^4.1.0
 
 dev_dependencies:
   flutter_test:
