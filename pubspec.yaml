@@ -13,7 +13,6 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.5
-  flutter_tags: ^1.0.0-nullsafety.1
   location: ^4.4.0
   intl: ^0.17.0
   latlong2: ^0.8.1

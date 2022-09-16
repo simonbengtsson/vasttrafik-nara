@@ -1,4 +1,4 @@
-package com.simonbengtsson.arcticturn
+package com.example.vasttrafiknara
 
 import io.flutter.embedding.android.FlutterActivity
 
