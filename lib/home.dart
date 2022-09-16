@@ -176,7 +176,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),*/
             ],
             backgroundColor: Colors.white),
-        body: SafeArea(child: mainCmp));
+        body: mainCmp);
   }
 
   _onRefresh() async {

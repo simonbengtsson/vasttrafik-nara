@@ -119,7 +119,6 @@ class _StopPageState extends State<StopPage> {
           },
           style: TextButton.styleFrom(
             padding: EdgeInsets.all(5),
-            primary: dep.bgColor,
             backgroundColor: Color.fromRGBO(200, 200, 200, 0.3),
           )),
     );
@@ -181,7 +180,7 @@ class _StopPageState extends State<StopPage> {
             ),
           ],
         ),
-        body: SafeArea(child: main));
+        body: main);
   }
 
   Widget buildList(BuildContext context) {
@@ -267,7 +266,7 @@ class _StopPageState extends State<StopPage> {
           title: Text(removeGothenburg(this.widget.stop['name'])),
           actions: [],
         ),
-        body: SafeArea(child: listView));
+        body: listView);
   }
 
   removeGothenburg(name) {
