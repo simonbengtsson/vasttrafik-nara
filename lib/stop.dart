@@ -10,7 +10,7 @@ import 'package:vasttrafik_nara/vasttrafik.dart';
 class StopPage extends StatefulWidget {
   StopPage({Key? key, this.stop}) : super(key: key);
 
-  var stop;
+  final stop;
 
   @override
   _StopPageState createState() => _StopPageState();
@@ -40,11 +40,15 @@ class _StopPageState extends State<StopPage> {
 
     var departs2 =
         departs.map((it) => Departure(it)).toList().cast<Departure>();
+
+    this.setState(() {
+      this.departures = departs2;
+    });
+
     var nextStops = await initNextStops(api, departs);
 
     this.setState(() {
       this.nextStops = nextStops;
-      this.departures = departs2;
     });
   }
 
@@ -85,8 +89,8 @@ class _StopPageState extends State<StopPage> {
 
   @override
   Widget build(BuildContext context) {
-    return buildSectionList(context);
-    //return buildList(context);
+    //return buildSectionList(context);
+    return buildList(context);
   }
 
   Widget buildChip(Departure dep) {
