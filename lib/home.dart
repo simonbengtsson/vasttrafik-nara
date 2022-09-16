@@ -47,7 +47,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
     var stops = await api.getNearby(this.currentLocation!) ?? [];
-    stops = stops.where((stop) => stop['track'] == null).toList();
+    stops = stops
+        .where((stop) => stop['track'] == null && stop['id'].startsWith('9'))
+        .toList();
+    stops.forEach((it) {
+      print(it);
+    });
 
     this.setState(() {
       this.nearbyStops = stops;
@@ -211,7 +216,6 @@ class StopHeadingItem {
 
   StopHeadingItem(this.stop, this.currentLocation, this.context);
 
-  @override
   Widget build() {
     var name = stop['name'];
     if (name.endsWith(', Göteborg')) {
