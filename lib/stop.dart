@@ -35,7 +35,11 @@ class _StopPageState extends State<StopPage> {
     departs.sort((a, b) {
       String aTime = a['rtTime'] ?? a['time'];
       String bTime = b['rtTime'] ?? b['time'];
-      return aTime.compareTo(bTime);
+      String aDate = a['rtDate'] ?? a['date'];
+      String bDate = b['rtDate'] ?? b['date'];
+      var ad = DateTime.parse(aDate + 'T' + aTime);
+      var bd = DateTime.parse(bDate + 'T' + bTime);
+      return ad.compareTo(bd);
     });
 
     var departs2 =
@@ -133,7 +137,7 @@ class _StopPageState extends State<StopPage> {
         .departures
         .where((it) => it.nextStop['id'] == nextStop['id'])
         .toList();
-    var depw = deps.map((it) => buildChip(it) as Widget);
+    var depw = deps.map((it) => buildChip(it));
     return Padding(
       padding: EdgeInsets.all(20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
