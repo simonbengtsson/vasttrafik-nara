@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:device_info/device_info.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,13 +33,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
   fetchData() async {
     var deviceInfo = DeviceInfoPlugin();
-    var isPhysical = Platform.isIOS
-        ? (await deviceInfo.iosInfo).isPhysicalDevice
-        : (await deviceInfo.androidInfo).isPhysicalDevice;
-    if (isPhysical) {
+    var useRealLocation =
+        !Platform.isIOS || (await deviceInfo.iosInfo).isPhysicalDevice;
+    if (useRealLocation) {
       var location = Location();
-      var loc = await location.getLocation();
-      this.currentLocation = LatLng(loc.latitude!, loc.longitude!);
+      try {
+        var res = await location.requestService();
+        print('RES $res');
+        var loc = await location.getLocation();
+        this.currentLocation = LatLng(loc.latitude!, loc.longitude!);
+      } catch (error) {
+        print('Error getting location: $error');
+        this.currentLocation = LatLng(57.6897091, 11.9719767);
+      }
     } else {
       this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
       //this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken
