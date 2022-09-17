@@ -49,5 +49,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Used for finding stops and departures nearby</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Used for finding stops and departures nearby</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Used for finding stops and departures nearby</string>
 </dict>
 </plist>
