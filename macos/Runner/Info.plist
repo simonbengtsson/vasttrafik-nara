@@ -24,15 +24,15 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Used for finding stops and departures nearby</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Used for finding stops and departures nearby</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Used for finding stops and departures nearby</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Used for finding stops and departures nearby</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>Used for finding stops and departures nearby</string>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Used for finding stops and departures nearby</string>
 </dict>
 </plist>
