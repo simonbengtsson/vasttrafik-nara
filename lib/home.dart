@@ -3,13 +3,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:location/location.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/stop.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
-var gothenburgLocation = LatLng(57.7068421, 11.9704796);
+var gothenburgLocation = Position(
+    latitude: 57.7068421,
+    longitude: 11.9704796,
+    timestamp: DateTime.now(),
+    accuracy: -1,
+    altitude: -1,
+    heading: -1,
+    speed: -1,
+    speedAccuracy: -1);
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key}) : super(key: key);
@@ -22,7 +30,7 @@ class _MyHomePageState extends State<MyHomePage> {
   var fetchComplete = false;
   var nearbyStops = [];
   var isSearching = false;
-  LatLng? currentLocation;
+  Position? currentLocation;
 
   @override
   initState() {
@@ -31,17 +39,24 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   fetchData() async {
-    var location = Location();
     try {
-      var loc = await location.getLocation().timeout(Duration(seconds: 5));
-      final Distance distance = new Distance();
-      var offset = distance.as(LengthUnit.Meter,
-          LatLng(loc.latitude!, loc.longitude!), this.currentLocation!);
-      if (offset < 200 * 1000) {
-        this.currentLocation = LatLng(loc.latitude!, loc.longitude!);
+      var position =
+          await getCurrentLocation(context).timeout(Duration(seconds: 5));
+      var distanceAway = Geolocator.distanceBetween(
+          position.latitude,
+          position.longitude,
+          gothenburgLocation.latitude,
+          gothenburgLocation.longitude);
+      if (distanceAway < 200 * 1000) {
+        this.currentLocation = position;
+      } else {
+        print(
+            "Far from Gothenburg (${distanceAway.round()}, not using current location");
       }
-    } catch (error) {
-      print('Error getting location: $error');
+    } catch (error, stack) {
+      var details = FlutterErrorDetails(exception: error, stack: stack);
+      FlutterError.presentError(details);
+      print('Error getting location. Details above');
     }
 
     var currentLocation = this.currentLocation ?? gothenburgLocation;
@@ -212,7 +227,7 @@ const List<Choice> choices = const <Choice>[
 class StopHeadingItem {
   final Map stop;
   final BuildContext context;
-  final LatLng? currentLocation;
+  final Position? currentLocation;
 
   StopHeadingItem(this.stop, this.currentLocation, this.context);
 
@@ -222,12 +237,12 @@ class StopHeadingItem {
       name = name.substring(0, name.length - ', Göteborg'.length);
     }
 
+    var lat = double.parse(stop['lat']);
+    var lon = double.parse(stop['lon']);
     var offset = this.currentLocation == null
         ? null
-        : Distance().as(
-            LengthUnit.Meter,
-            LatLng(double.parse(stop['lat']), double.parse(stop['lon'])),
-            this.currentLocation!);
+        : Geolocator.distanceBetween(lat, lon, this.currentLocation!.latitude,
+            this.currentLocation!.longitude);
 
     return ListTile(
         onTap: () {

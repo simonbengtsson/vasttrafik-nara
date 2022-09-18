@@ -310,7 +310,7 @@ class Departure {
     return data['direction'];
   }
 
-  String get track {
+  String? get track {
     return data['track'];
   }
 
@@ -356,15 +356,13 @@ class DepartureItem {
 
   DepartureItem(this.departure, this.context);
 
-  @override
   Widget build() {
-    var subtitle = 'Läge ${departure.track}';
+    var subtitle = departure.track == null ? '' : 'Läge ${departure.track}';
     var direction = departure.direction;
     final viaIndex = direction.indexOf(' via ');
     if (viaIndex > 0) {
-      subtitle = subtitle +
-          ' • ' +
-          direction.substring(viaIndex, direction.length).trim();
+      var via = direction.substring(viaIndex, direction.length).trim();
+      subtitle = [subtitle, via].join(' • ');
       direction = direction.substring(0, viaIndex).trim();
     }
 
@@ -382,9 +380,15 @@ class DepartureItem {
                   builder: (context) => JourneyScreen(departure.data)),
             );
           },
-          leading: Text(departure.shortName, style: textStyle),
+          leading: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Text(departure.shortName, style: textStyle)],
+          ),
+          minLeadingWidth: 60,
           title: Text(direction, style: textStyle),
-          subtitle: Text(subtitle, style: TextStyle(color: departure.bgColor)),
+          subtitle: subtitle.isEmpty
+              ? null
+              : Text(subtitle, style: TextStyle(color: departure.bgColor)),
           trailing: Text(departure.time, style: textStyle),
         ));
   }

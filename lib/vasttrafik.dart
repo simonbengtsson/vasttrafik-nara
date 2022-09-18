@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:latlong2/latlong.dart';
 
 class VasttrafikApi {
   String authKey;
@@ -21,7 +21,7 @@ class VasttrafikApi {
     return map['LocationList']['StopLocation'];
   }
 
-  getNearby(LatLng latLng) async {
+  getNearby(Position latLng) async {
     String path = "/location.nearbystops";
     String queryString =
         "?originCoordLat=${latLng.latitude}&originCoordLong=${latLng.longitude}&format=json&maxNo=500";
