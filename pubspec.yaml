@@ -37,3 +37,4 @@ icons_launcher:
   platforms:
     macos:
       enable: true
+      image_path: 'assets/mac_app_icon.png'
