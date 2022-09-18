@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 class VasttrafikApi {
-
   String authKey;
   String authSecret;
 
@@ -24,7 +23,8 @@ class VasttrafikApi {
 
   getNearby(LatLng latLng) async {
     String path = "/location.nearbystops";
-    String queryString = "?originCoordLat=${latLng.latitude}&originCoordLong=${latLng.longitude}&format=json&maxNo=50";
+    String queryString =
+        "?originCoordLat=${latLng.latitude}&originCoordLong=${latLng.longitude}&format=json&maxNo=500";
     String url = basePath + path + queryString;
     var res = await _callApi(url);
     var json = res.body;
@@ -78,7 +78,9 @@ class VasttrafikApi {
     String str = authKey + ':' + authSecret;
     String authHeader = "Basic " + base64.encode(utf8.encode(str));
 
-    String url = 'https://api.vasttrafik.se/token?grant_type=client_credentials&scope=device_' + deviceId;
+    String url =
+        'https://api.vasttrafik.se/token?grant_type=client_credentials&scope=device_' +
+            deviceId;
     Uri uri = Uri.parse(url);
     var res = await http.post(uri, headers: {'Authorization': authHeader});
 

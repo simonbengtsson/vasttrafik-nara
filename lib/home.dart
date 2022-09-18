@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +8,8 @@ import 'package:location/location.dart';
 import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/stop.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
+
+var gothenburgLocation = LatLng(57.7068421, 11.9704796);
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key}) : super(key: key);
@@ -32,27 +31,22 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   fetchData() async {
-    var deviceInfo = DeviceInfoPlugin();
-    var useRealLocation =
-        !Platform.isIOS || (await deviceInfo.iosInfo).isPhysicalDevice;
-    if (useRealLocation) {
-      var location = Location();
-      try {
-        var res = await location.requestService();
-        print('RES $res');
-        var loc = await location.getLocation();
+    var location = Location();
+    try {
+      var loc = await location.getLocation().timeout(Duration(seconds: 5));
+      final Distance distance = new Distance();
+      var offset = distance.as(LengthUnit.Meter,
+          LatLng(loc.latitude!, loc.longitude!), this.currentLocation!);
+      if (offset < 200 * 1000) {
         this.currentLocation = LatLng(loc.latitude!, loc.longitude!);
-      } catch (error) {
-        print('Error getting location: $error');
-        this.currentLocation = LatLng(57.6897091, 11.9719767);
       }
-    } else {
-      this.currentLocation = LatLng(57.6897091, 11.9719767); // Chalmers
-      //this.currentLocation = LatLng(57.7067818, 11.9668661); // Brunnsparken
+    } catch (error) {
+      print('Error getting location: $error');
     }
 
+    var currentLocation = this.currentLocation ?? gothenburgLocation;
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-    var stops = await api.getNearby(this.currentLocation!) ?? [];
+    var stops = await api.getNearby(currentLocation) ?? [];
     stops = stops
         .where((stop) => stop['track'] == null && stop['id'].startsWith('9'))
         .toList();
@@ -228,11 +222,12 @@ class StopHeadingItem {
       name = name.substring(0, name.length - ', Göteborg'.length);
     }
 
-    final Distance distance = new Distance();
-    var offset = distance.as(
-        LengthUnit.Meter,
-        LatLng(double.parse(stop['lat']), double.parse(stop['lon'])),
-        this.currentLocation!);
+    var offset = this.currentLocation == null
+        ? null
+        : Distance().as(
+            LengthUnit.Meter,
+            LatLng(double.parse(stop['lat']), double.parse(stop['lon'])),
+            this.currentLocation!);
 
     return ListTile(
         onTap: () {
@@ -252,7 +247,7 @@ class StopHeadingItem {
                           maxLines: 1,
                           minFontSize: 16.0,
                           style: Theme.of(context).textTheme.headline6!)),
-                  Text("${offset.round()} m",
+                  Text(offset != null ? "${offset.round()} m" : '',
                       style: Theme.of(context)
                           .textTheme
                           .headline6!
