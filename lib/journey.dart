@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class JourneyScreen extends StatefulWidget {
-  final Map<String, dynamic> departure;
+  final Departure departure;
 
   JourneyScreen(this.departure);
 
@@ -15,7 +15,7 @@ class JourneyScreen extends StatefulWidget {
 }
 
 class _JourneyScreenState extends State<JourneyScreen> {
-  Map<String, dynamic> departure;
+  Departure departure;
   List<Stop> stops = [];
   ScrollController? _scrollController;
 
@@ -29,7 +29,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   fetchData() async {
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-    var ref = this.departure['JourneyDetailRef']['ref'];
+    var ref = this.departure.data['JourneyDetailRef']['ref'];
     var journey = await api.getJourney(ref);
 
     if (this.mounted) {
@@ -49,11 +49,11 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Color fgColor = hexColor(this.departure['fgColor']);
+    Color fgColor = this.departure.fgColor;
     var lum = fgColor.computeLuminance();
 
     var stopIndex =
-        this.stops.indexWhere((stop) => stop.id == this.departure['stopid']);
+        this.stops.indexWhere((stop) => stop.id == this.departure.stopId);
     this._scrollController =
         ScrollController(initialScrollOffset: stopIndex * 56.0);
 
@@ -73,10 +73,10 @@ class _JourneyScreenState extends State<JourneyScreen> {
               final stop = this.stops[index];
               var style = TextStyle(
                 fontSize: 18.0,
-                color: stop.id == this.departure['stopid']
+                color: stop.id == this.departure.stopId
                     ? Colors.black
                     : Colors.black.withOpacity(index < stopIndex ? 0.3 : 0.8),
-                fontWeight: stop.id == this.departure['stopid']
+                fontWeight: stop.id == this.departure.stopId
                     ? FontWeight.w900
                     : FontWeight.w500,
               );
@@ -90,22 +90,21 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         builder: (context) => StopPage(stop: stop)),
                   );
                 },
-                selected: stop.id == this.departure['stopid'],
+                selected: stop.id == this.departure.stopId,
                 title: Text(stop.name, style: style),
                 trailing: Text(stop.departureTime, style: style),
               ));
             });
 
-    var name = this.departure['sname'] + ' ' + this.departure['direction'];
+    var name = this.departure.shortName + ' ' + this.departure.direction;
     return Scaffold(
         appBar: AppBar(
           backgroundColor: fgColor,
           systemOverlayStyle: lum < 0.7
               ? SystemUiOverlayStyle.dark
               : SystemUiOverlayStyle.light,
-          iconTheme: IconThemeData(color: hexColor(this.departure['bgColor'])),
-          title: Text(name,
-              style: TextStyle(color: hexColor(this.departure['bgColor']))),
+          iconTheme: IconThemeData(color: this.departure.bgColor),
+          title: Text(name, style: TextStyle(color: this.departure.bgColor)),
         ),
         body: listView);
   }

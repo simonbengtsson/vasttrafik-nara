@@ -123,7 +123,7 @@ class _StopPageState extends State<StopPage> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => JourneyScreen(dep.data),
+                  builder: (context) => JourneyScreen(dep),
                 ));
           },
           style: TextButton.styleFrom(
@@ -292,10 +292,6 @@ class Stop {
 
   String get name {
     String name = data['name'];
-
-    if (name.contains(', Påstigning fram')) {
-      name = name.replaceAll(', Påstigning fram', '');
-    }
     if (name.contains(', Göteborg')) {
       name = name.replaceAll(', Göteborg', '');
     }
@@ -317,12 +313,28 @@ class Departure {
     return data['nextStop'];
   }
 
+  String get name {
+    var name = data['name'];
+    if (name.contains(', Påstigning fram')) {
+      print('REMOVED $name');
+      name = name.replaceAll(', Påstigning fram', '');
+    } else {
+      print('KEPT $name');
+    }
+    return name;
+  }
+
   String get shortName {
     return data['sname'];
   }
 
   String get direction {
-    return data['direction'];
+    var name = data['direction'];
+    if (name.contains(', Påstigning fram')) {
+      print('REMOVED $name');
+      name = name.replaceAll(', Påstigning fram', '');
+    }
+    return name;
   }
 
   String? get track {
@@ -358,6 +370,8 @@ class Departure {
     return minStr;
   }
 
+  String get stopId => data['stopid'];
+
   _hexColor(hexStr) {
     var hex = 'FF' + hexStr.substring(1);
     var numColor = int.parse(hex, radix: 16);
@@ -391,8 +405,7 @@ class DepartureItem {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) => JourneyScreen(departure.data)),
+              MaterialPageRoute(builder: (context) => JourneyScreen(departure)),
             );
           },
           leading: Column(
