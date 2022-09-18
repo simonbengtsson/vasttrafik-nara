@@ -13,13 +13,12 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.5
-  location: ^4.4.0
   intl: ^0.17.0
-  latlong2: ^0.8.1
   auto_size_text: ^3.0.0
   shared_preferences: ^2.0.15
   flutter_typeahead: ^4.1.0
   device_info_plus: ^4.1.2
+  geolocator: ^9.0.1
 
 dev_dependencies:
   flutter_test:
