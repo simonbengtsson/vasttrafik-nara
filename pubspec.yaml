@@ -19,6 +19,7 @@ dependencies:
   flutter_typeahead: ^4.1.0
   device_info_plus: ^4.1.2
   geolocator: ^9.0.1
+  icons_launcher: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -28,3 +29,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/
+
+icons_launcher:
+  image_path: 'assets/app_icon.png'
+  platforms:
+    macos:
+      enable: true
