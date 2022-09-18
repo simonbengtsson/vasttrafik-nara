@@ -6,8 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class JourneyScreen extends StatefulWidget {
-
-  Map<String, dynamic> departure;
+  final Map<String, dynamic> departure;
 
   JourneyScreen(this.departure);
 
@@ -16,9 +15,8 @@ class JourneyScreen extends StatefulWidget {
 }
 
 class _JourneyScreenState extends State<JourneyScreen> {
-
   Map<String, dynamic> departure;
-  List? stops = [];
+  List<Stop> stops = [];
   ScrollController? _scrollController;
 
   _JourneyScreenState(this.departure);
@@ -30,13 +28,15 @@ class _JourneyScreenState extends State<JourneyScreen> {
   }
 
   fetchData() async {
-    VasttrafikApi api =  VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
+    VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
     var ref = this.departure['JourneyDetailRef']['ref'];
     var journey = await api.getJourney(ref);
 
     if (this.mounted) {
       this.setState(() {
-        this.stops = journey['Stop'];
+        List raw = journey['Stop'];
+        var stops = List<Stop>.from(raw.map((it) => Stop(it)));
+        this.stops = stops;
       });
     }
   }
@@ -52,66 +52,61 @@ class _JourneyScreenState extends State<JourneyScreen> {
     Color fgColor = hexColor(this.departure['fgColor']);
     var lum = fgColor.computeLuminance();
 
-    var stopIndex = this.stops!.indexWhere((stop) => stop['id'] == this.departure['stopid']);
-    this._scrollController = ScrollController(initialScrollOffset: stopIndex * 56.0);
+    var stopIndex =
+        this.stops.indexWhere((stop) => stop.id == this.departure['stopid']);
+    this._scrollController =
+        ScrollController(initialScrollOffset: stopIndex * 56.0);
 
     var loader = Padding(
         padding: EdgeInsets.all(20.0),
         child: Center(
-            child: Column(
-                children: <Widget>[CupertinoActivityIndicator(
-                    animating: true,
-                    radius: 15.0
-                )]
-            )
-        )
-    );
+            child: Column(children: <Widget>[
+          CupertinoActivityIndicator(animating: true, radius: 15.0)
+        ])));
 
-    var listView = stopIndex < 0 ? loader : ListView.builder(
-        itemCount: this.stops!.length,
-        controller: this._scrollController,
+    var listView = stopIndex < 0
+        ? loader
+        : ListView.builder(
+            itemCount: this.stops.length,
+            controller: this._scrollController,
+            itemBuilder: (context, index) {
+              final stop = this.stops[index];
+              var style = TextStyle(
+                fontSize: 18.0,
+                color: stop.id == this.departure['stopid']
+                    ? Colors.black
+                    : Colors.black.withOpacity(index < stopIndex ? 0.3 : 0.8),
+                fontWeight: stop.id == this.departure['stopid']
+                    ? FontWeight.w900
+                    : FontWeight.w500,
+              );
 
-        itemBuilder: (context, index) {
-          final stop = this.stops![index];
-          var style = TextStyle(
-            fontSize: 18.0,
-            color: stop['id'] == this.departure['stopid'] ? Colors.black : Colors.black.withOpacity(index < stopIndex ? 0.3 : 0.8),
-            fontWeight: stop['id'] == this.departure['stopid'] ? FontWeight.w900 : FontWeight.w500,
-          );
-
-          var name = stop['name'];
-          if (name.endsWith(', Göteborg')) {
-            name = name.substring(0, name.length - ', Göteborg'.length);
-          }
-
-          return Container(
-              child: ListTile(
+              return Container(
+                  child: ListTile(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => StopPage(stop: stop)),
+                    MaterialPageRoute(
+                        builder: (context) => StopPage(stop: stop)),
                   );
                 },
-                selected: stop['id'] == this.departure['stopid'],
-                title: Text(
-                    name,
-                    style: style
-                ),
-                trailing: Text(stop['depTime'] ?? stop['arrTime'], style: style),
-              )
-          );
-        }
-    );
+                selected: stop.id == this.departure['stopid'],
+                title: Text(stop.name, style: style),
+                trailing: Text(stop.departureTime, style: style),
+              ));
+            });
 
     var name = this.departure['sname'] + ' ' + this.departure['direction'];
     return Scaffold(
         appBar: AppBar(
           backgroundColor: fgColor,
-          brightness: lum < 0.7 ? Brightness.dark : Brightness.light,
+          systemOverlayStyle: lum < 0.7
+              ? SystemUiOverlayStyle.dark
+              : SystemUiOverlayStyle.light,
           iconTheme: IconThemeData(color: hexColor(this.departure['bgColor'])),
-          title: Text(name, style: TextStyle(color: hexColor(this.departure['bgColor']))),
+          title: Text(name,
+              style: TextStyle(color: hexColor(this.departure['bgColor']))),
         ),
-        body: listView
-    );
+        body: listView);
   }
 }

@@ -28,7 +28,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var fetchComplete = false;
-  var nearbyStops = [];
+  List<Stop> nearbyStops = [];
   var isSearching = false;
   Position? currentLocation;
 
@@ -61,13 +61,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var currentLocation = this.currentLocation ?? gothenburgLocation;
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-    var stops = await api.getNearby(currentLocation) ?? [];
-    stops = stops
+    var rawStops = await api.getNearby(currentLocation) ?? [];
+    var stops = List<Stop>.from(rawStops
         .where((stop) => stop['track'] == null && stop['id'].startsWith('9'))
-        .toList();
-    stops.forEach((it) {
-      print(it);
-    });
+        .map((it) => Stop(it)));
 
     this.setState(() {
       this.nearbyStops = stops;
@@ -137,25 +134,24 @@ class _MyHomePageState extends State<MyHomePage> {
       suggestionsCallback: (pattern) async {
         VasttrafikApi api =
             VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-        var stops = await api.search(pattern) ?? [];
-        stops = stops.where((stop) => stop['track'] == null).toList();
+        var rawStops = await api.search(pattern) ?? [];
+        var stops = rawStops
+            .where((stop) => stop['track'] == null)
+            .map((it) => Stop(it))
+            .toList();
         return stops;
       },
       itemBuilder: (context, inputStop) {
-        var stop = inputStop as Map<String, dynamic>;
-        var name = stop['name'];
-        if (name.endsWith(', Göteborg')) {
-          name = name.substring(0, name.length - ', Göteborg'.length);
-        }
+        var stop = inputStop as Stop;
         return ListTile(
-          title: Text(name),
+          title: Text(stop.name),
         );
       },
       onSuggestionSelected: (stop) {
         _controller.text = "";
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => StopPage(stop: stop)),
+          MaterialPageRoute(builder: (context) => StopPage(stop: stop as Stop)),
         );
       },
     );
@@ -225,24 +221,18 @@ const List<Choice> choices = const <Choice>[
 ];
 
 class StopHeadingItem {
-  final Map stop;
+  final Stop stop;
   final BuildContext context;
   final Position? currentLocation;
 
   StopHeadingItem(this.stop, this.currentLocation, this.context);
 
   Widget build() {
-    var name = stop['name'];
-    if (name.endsWith(', Göteborg')) {
-      name = name.substring(0, name.length - ', Göteborg'.length);
-    }
-
-    var lat = double.parse(stop['lat']);
-    var lon = double.parse(stop['lon']);
+    var name = stop.name;
     var offset = this.currentLocation == null
         ? null
-        : Geolocator.distanceBetween(lat, lon, this.currentLocation!.latitude,
-            this.currentLocation!.longitude);
+        : Geolocator.distanceBetween(stop.lat, stop.lon,
+            this.currentLocation!.latitude, this.currentLocation!.longitude);
 
     return ListTile(
         onTap: () {

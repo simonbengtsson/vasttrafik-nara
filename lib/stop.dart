@@ -8,9 +8,9 @@ import 'package:vasttrafik_nara/journey.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
 class StopPage extends StatefulWidget {
-  StopPage({Key? key, this.stop}) : super(key: key);
+  StopPage({Key? key, required this.stop}) : super(key: key);
 
-  final stop;
+  final Stop stop;
 
   @override
   _StopPageState createState() => _StopPageState();
@@ -18,7 +18,7 @@ class StopPage extends StatefulWidget {
 
 class _StopPageState extends State<StopPage> {
   List<Departure> departures = [];
-  var nextStops = [];
+  List<Stop> nextStops = [];
   var activeNextStopTags = {};
 
   @override
@@ -30,7 +30,7 @@ class _StopPageState extends State<StopPage> {
   fetchData() async {
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
 
-    var stopId = this.widget.stop['id'];
+    var stopId = this.widget.stop.id;
     var departs = await api.getDepartures(stopId, DateTime.now()) ?? [];
     departs.sort((a, b) {
       String aTime = a['rtTime'] ?? a['time'];
@@ -56,32 +56,33 @@ class _StopPageState extends State<StopPage> {
     });
   }
 
-  initNextStops(api, departs) async {
+  Future<List<Stop>> initNextStops(api, departs) async {
     List<Future> futures = [];
     var nexts = {};
     departs.forEach((dep) {
       var ref = dep['JourneyDetailRef']['ref'];
       futures.add(api.getJourney(ref).then((journey) {
         var nextStop = getNextStop(journey, dep);
-        dep['nextStop'] = nextStop;
-        var saved = nextStop['departures'] ?? [];
-        saved.add(dep);
-        nextStop['departures'] = saved;
-        nexts[convertToStopId(nextStop['id'])] = nextStop;
+        if (nextStop != null) {
+          dep['nextStop'] = nextStop;
+          var saved = nextStop.data['departures'] ?? [];
+          saved.add(dep);
+          nextStop.data['departures'] = saved;
+          nexts[convertToStopId(nextStop.id)] = nextStop;
+        }
       }));
     });
     await Future.wait(futures);
 
-    return nexts.values.toList();
+    return List<Stop>.from(nexts.values.toList());
   }
 
-  getNextStop(journey, dep) {
+  Stop? getNextStop(journey, dep) {
     var stops = journey["Stop"];
     var stopIndex = stops.indexWhere((stop) => stop['id'] == dep['stopid']);
     if (stopIndex >= 0 && stops.length > stopIndex + 1) {
-      var stop = stops[stopIndex + 1];
-      stop['name'] = removeGothenburg(stop['name']);
-      return stop;
+      var data = stops[stopIndex + 1];
+      return Stop(data);
     }
     return null;
   }
@@ -132,18 +133,16 @@ class _StopPageState extends State<StopPage> {
     );
   }
 
-  Widget buildSection(nextStop) {
-    List deps = this
-        .departures
-        .where((it) => it.nextStop['id'] == nextStop['id'])
-        .toList();
+  Widget buildSection(Stop nextStop) {
+    List deps =
+        this.departures.where((it) => it.nextStop.id == nextStop.id).toList();
     var depw = deps.map((it) => buildChip(it));
     return Padding(
       padding: EdgeInsets.all(20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
             padding: EdgeInsets.only(bottom: 10),
-            child: Text(nextStop['name'],
+            child: Text(nextStop.name,
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
         Wrap(children: depw.toList(), runSpacing: 7, spacing: -3),
       ]),
@@ -154,13 +153,13 @@ class _StopPageState extends State<StopPage> {
     var items = <DepartureItem>[];
     departures.forEach((dep) {
       if (this.activeNextStopTags.length == 0 ||
-          this.activeNextStopTags.containsKey(dep.nextStop['id'])) {
+          this.activeNextStopTags.containsKey(dep.nextStop.id)) {
         items.add(DepartureItem(dep, context));
       }
     });
 
     this.nextStops.sort((a, b) {
-      return a['name'].toLowerCase().compareTo(b['name'].toLowerCase());
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
 
     var loader = Padding(
@@ -176,7 +175,7 @@ class _StopPageState extends State<StopPage> {
             children: this.nextStops.map((it) => buildSection(it)).toList());
     return Scaffold(
         appBar: AppBar(
-          title: Text(removeGothenburg(this.widget.stop['name'])),
+          title: Text(this.widget.stop.name),
           actions: [
             IconButton(
               icon: Icon(Icons.refresh),
@@ -195,17 +194,17 @@ class _StopPageState extends State<StopPage> {
     var items = <DepartureItem>[];
     departures.forEach((dep) {
       if (this.activeNextStopTags.length == 0 ||
-          this.activeNextStopTags.containsKey(dep.nextStop['id'])) {
+          this.activeNextStopTags.containsKey(dep.nextStop.id)) {
         items.add(DepartureItem(dep, context));
       }
     });
 
     this.nextStops.sort((a, b) {
-      return a['name'].toLowerCase().compareTo(b['name'].toLowerCase());
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
 
     List<TextButton> buttons = this.nextStops.map((stop) {
-      String id = stop['id'];
+      String id = stop.id;
       return TextButton(
           onPressed: () => {
                 this.setState(() {
@@ -216,7 +215,7 @@ class _StopPageState extends State<StopPage> {
                   }
                 })
               },
-          child: Text(stop['name'],
+          child: Text(stop.name,
               style: TextStyle(
                   color: this.activeNextStopTags[id] == null
                       ? Colors.grey
@@ -271,17 +270,10 @@ class _StopPageState extends State<StopPage> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text(removeGothenburg(this.widget.stop['name'])),
+          title: Text(this.widget.stop.name),
           actions: [],
         ),
         body: listView);
-  }
-
-  removeGothenburg(name) {
-    if (name.endsWith(', Göteborg')) {
-      name = name.substring(0, name.length - ', Göteborg'.length);
-    }
-    return name;
   }
 
   _onRefresh() async {
@@ -293,12 +285,35 @@ class _StopPageState extends State<StopPage> {
   }
 }
 
+class Stop {
+  final Map<String, dynamic> data;
+
+  Stop(this.data);
+
+  String get name {
+    String name = data['name'];
+
+    if (name.contains(', Påstigning fram')) {
+      name = name.replaceAll(', Påstigning fram', '');
+    }
+    if (name.contains(', Göteborg')) {
+      name = name.replaceAll(', Göteborg', '');
+    }
+    return name;
+  }
+
+  String get id => data['id'];
+  double get lat => double.parse(data['lat']);
+  double get lon => double.parse(data['lon']);
+  String get departureTime => data['depTime'] ?? '-';
+}
+
 class Departure {
   final Map<String, dynamic> data;
 
   Departure(this.data);
 
-  Map get nextStop {
+  Stop get nextStop {
     return data['nextStop'];
   }
 

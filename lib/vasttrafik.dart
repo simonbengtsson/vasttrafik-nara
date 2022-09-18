@@ -55,13 +55,6 @@ class VasttrafikApi {
     return map['DepartureBoard']['Departure'];
   }
 
-  removeGothenburg(name) {
-    if (name.endsWith(', Göteborg')) {
-      name = name.substring(0, name.length - ', Göteborg'.length);
-    }
-    return name;
-  }
-
   _callApi(String url) async {
     Uri uri = Uri.parse(url);
     String token = await _authorize();
