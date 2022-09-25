@@ -32,10 +32,13 @@ flutter:
   assets:
     - assets/
 
+# flutter pub run icons_launcher:create
 icons_launcher:
   image_path: 'assets/app_icon.png'
   platforms:
     android:
+      enable: true
+    ios:
       enable: true
     macos:
       enable: true
