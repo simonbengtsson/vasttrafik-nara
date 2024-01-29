@@ -19,6 +19,8 @@ class _JourneyScreenState extends State<JourneyScreen> {
   List<Stop> stops = [];
   ScrollController? _scrollController;
 
+  bool loading = true;
+
   _JourneyScreenState(this.departure);
 
   @override
@@ -29,14 +31,13 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   fetchData() async {
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-    var ref = this.departure.data['JourneyDetailRef']['ref'];
+    var ref = this.departure.journeyId;
     var journey = await api.getJourney(ref);
 
     if (this.mounted) {
       this.setState(() {
-        List raw = journey['Stop'];
-        var stops = List<Stop>.from(raw.map((it) => Stop(it)));
-        this.stops = stops;
+        this.stops = journey.stops;
+        this.loading = false;
       });
     }
   }
@@ -64,7 +65,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
           CupertinoActivityIndicator(animating: true, radius: 15.0)
         ])));
 
-    var listView = stopIndex < 0
+    var listView = loading
         ? loader
         : ListView.builder(
             itemCount: this.stops.length,
@@ -92,7 +93,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                 },
                 selected: stop.id == this.departure.stopId,
                 title: Text(stop.name, style: style),
-                trailing: Text(stop.departureTime, style: style),
+                trailing: Text(stop.name, style: style),
               ));
             });
 

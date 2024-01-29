@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/journey.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
@@ -31,44 +30,35 @@ class _StopPageState extends State<StopPage> {
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
 
     var stopId = this.widget.stop.id;
-    var departs = await api.getDepartures(stopId, DateTime.now()) ?? [];
+    var departs = await api.getDepartures(stopId);
     departs.sort((a, b) {
-      String aTime = a['rtTime'] ?? a['time'];
-      String bTime = b['rtTime'] ?? b['time'];
-      String aDate = a['rtDate'] ?? a['date'];
-      String bDate = b['rtDate'] ?? b['date'];
-      var ad = DateTime.parse(aDate + 'T' + aTime);
-      var bd = DateTime.parse(bDate + 'T' + bTime);
-      return ad.compareTo(bd);
+      return a.date.compareTo(b.date);
     });
 
-    var departs2 =
-        departs.map((it) => Departure(it)).toList().cast<Departure>();
+    if (mounted) {
+      this.setState(() {
+        this.departures = departs;
+      });
+    }
 
-    this.setState(() {
-      this.departures = departs2;
-    });
-
-    var nextStops = await initNextStops(api, departs);
-
-    this.setState(() {
-      this.nextStops = nextStops;
-    });
+    // var nextStops = await initNextStops(api, departs);
+    // this.setState(() {
+    //   this.nextStops = nextStops;
+    // });
   }
 
-  Future<List<Stop>> initNextStops(api, departs) async {
+  Future<List<Stop>> initNextStops(api, List<Departure> departs) async {
     List<Future> futures = [];
     var nexts = {};
     departs.forEach((dep) {
-      var ref = dep['JourneyDetailRef']['ref'];
-      futures.add(api.getJourney(ref).then((journey) {
+      futures.add(api.getJourney(dep.journeyId).then((journey) {
         var nextStop = getNextStop(journey, dep);
         if (nextStop != null) {
-          dep['nextStop'] = nextStop;
-          var saved = nextStop.data['departures'] ?? [];
-          saved.add(dep);
-          nextStop.data['departures'] = saved;
-          nexts[convertToStopId(nextStop.id)] = nextStop;
+          // dep.nextStop = nextStop;
+          // var saved = nextStop['departures'] ?? [];
+          // saved.add(dep);
+          // nextStop.data['departures'] = saved;
+          // nexts[convertToStopId(nextStop.id)] = nextStop;
         }
       }));
     });
@@ -282,100 +272,6 @@ class _StopPageState extends State<StopPage> {
       this.nextStops = [];
     });
     await fetchData();
-  }
-}
-
-class Stop {
-  final Map<String, dynamic> data;
-
-  Stop(this.data);
-
-  String get name {
-    String name = data['name'];
-    if (name.contains(', Göteborg')) {
-      name = name.replaceAll(', Göteborg', '');
-    }
-    return name;
-  }
-
-  String get id => data['id'];
-  double get lat => double.parse(data['lat']);
-  double get lon => double.parse(data['lon']);
-  String get departureTime => data['depTime'] ?? '-';
-}
-
-class Departure {
-  final Map<String, dynamic> data;
-
-  Departure(this.data);
-
-  Stop get nextStop {
-    return data['nextStop'];
-  }
-
-  String get name {
-    var name = data['name'];
-    if (name.contains(', Påstigning fram')) {
-      print('REMOVED $name');
-      name = name.replaceAll(', Påstigning fram', '');
-    } else {
-      print('KEPT $name');
-    }
-    return name;
-  }
-
-  String get shortName {
-    return data['sname'];
-  }
-
-  String get direction {
-    var name = data['direction'];
-    if (name.contains(', Påstigning fram')) {
-      print('REMOVED $name');
-      name = name.replaceAll(', Påstigning fram', '');
-    }
-    return name;
-  }
-
-  String? get track {
-    return data['track'];
-  }
-
-  Color get bgColor {
-    return _hexColor(data['bgColor']);
-  }
-
-  Color get fgColor {
-    return _hexColor(data['fgColor']);
-  }
-
-  String get time {
-    var timeStr = data['rtTime'] ?? data['time'];
-    var dateStr = data['date'] + ' ' + timeStr;
-    DateFormat format = new DateFormat("yyyy-MM-dd HH:mm");
-    var date = format.parse(dateStr);
-    var now = DateTime.now();
-    //var now = DateTime.parse("2021-03-12 05:00:00");
-
-    var minDiff =
-        (date.millisecondsSinceEpoch - now.millisecondsSinceEpoch) / 1000 / 60;
-
-    var minStr = timeStr;
-    if (minDiff <= 0) {
-      minStr = "Now";
-    } else if (minDiff < 60) {
-      minStr = "${minDiff.ceil()}";
-    }
-
-    return minStr;
-  }
-
-  String get stopId => data['stopid'];
-
-  _hexColor(hexStr) {
-    var hex = 'FF' + hexStr.substring(1);
-    var numColor = int.parse(hex, radix: 16);
-    return Color(numColor);
   }
 }
 

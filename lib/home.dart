@@ -9,15 +9,7 @@ import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/stop.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
-var gothenburgLocation = Position(
-    latitude: 57.7068421,
-    longitude: 11.9704796,
-    timestamp: DateTime.now(),
-    accuracy: -1,
-    altitude: -1,
-    heading: -1,
-    speed: -1,
-    speedAccuracy: -1);
+var gothenburgLocation = Coordinate(57.7068421, 11.9704796);
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key}) : super(key: key);
@@ -58,19 +50,27 @@ class _MyHomePageState extends State<MyHomePage> {
       FlutterError.presentError(details);
       print('Error getting location. Details above');
     }
+    try {
+      var currentLocation = this.currentLocation == null
+          ? gothenburgLocation
+          : Coordinate(
+              this.currentLocation!.latitude, this.currentLocation!.longitude);
+      VasttrafikApi api =
+          VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
+      var stops = await api.getNearby(currentLocation);
 
-    var currentLocation = this.currentLocation ?? gothenburgLocation;
-    VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-    var rawStops = await api.getNearby(currentLocation) ?? [];
-    var stops = List<Stop>.from(rawStops
-        .where((stop) => stop['track'] == null && stop['id'].startsWith('9'))
-        .map((it) => Stop(it)));
-
-    this.setState(() {
-      this.nearbyStops = stops;
-      this.fetchComplete = true;
-    });
+      this.setState(() {
+        this.nearbyStops = stops;
+        this.fetchComplete = true;
+      });
+    } catch (error, stack) {
+      var details = FlutterErrorDetails(exception: error, stack: stack);
+      FlutterError.presentError(details);
+      print('Error getting vasttrafik stops');
+    }
   }
+
+  final _controller = TextEditingController();
 
   hexColor(hexStr) {
     var hex = 'FF' + hexStr.substring(1);
@@ -116,29 +116,27 @@ class _MyHomePageState extends State<MyHomePage> {
       mainCmp = listView;
     }
 
-    final _controller = TextEditingController();
-    var typeAhead = TypeAheadFormField(
-      textFieldConfiguration: TextFieldConfiguration(
-          controller: _controller,
-          style: DefaultTextStyle.of(context).style.copyWith(
-                fontSize: 17,
-                color: Colors.black,
-                fontWeight: FontWeight.normal,
-                decoration: TextDecoration.none,
-              ),
+    var typeAhead = TypeAheadField(
+      hideKeyboardOnDrag: true,
+      hideOnLoading: true,
+      controller: _controller,
+      hideOnEmpty: true,
+      builder: (context, controller, focusNode) {
+        return TextField(
+          controller: controller,
+          focusNode: focusNode,
           decoration: InputDecoration(
-            icon: Icon(Icons.search, color: Colors.grey),
+            hintText: 'Search',
             border: InputBorder.none,
-            hintText: 'Search for stops',
-          )),
+            prefixIcon: Icon(Icons.search),
+          ),
+        );
+      },
       suggestionsCallback: (pattern) async {
+        pattern = pattern.trim();
         VasttrafikApi api =
             VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-        var rawStops = await api.search(pattern) ?? [];
-        var stops = rawStops
-            .where((stop) => stop['track'] == null)
-            .map((it) => Stop(it))
-            .toList();
+        var stops = pattern.isNotEmpty ? await api.search(pattern) : null;
         return stops;
       },
       itemBuilder: (context, inputStop) {
@@ -147,8 +145,9 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Text(stop.name),
         );
       },
-      onSuggestionSelected: (stop) {
-        _controller.text = "";
+      onSelected: (stop) {
+        _controller.clear();
+        FocusScope.of(context).unfocus();
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => StopPage(stop: stop as Stop)),
@@ -169,27 +168,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   _onRefresh();
                 },
               ),
-              /*PopupMenuButton<String>(
-                onSelected: (choice) async {
-                  if (choice == 'Refresh') {
-                    _onRefresh();
-                  } else {
-                    SharedPreferences prefs = await SharedPreferences.getInstance();
-                    var isEnabled = prefs.getBool('nextStopsFlag') ?? false;
-                    prefs.setBool('nextStopsFlag', !isEnabled);
-                  }
-                },
-                itemBuilder: (BuildContext context) {
-                  //var choices = ["Refresh", "Toggle next stops"];
-                  var choices = ["Refresh"];
-                  return choices.map((String choice) {
-                    return PopupMenuItem<String>(
-                      value: choice,
-                      child: Text(choice),
-                    );
-                  }).toList();
-                },
-              ),*/
             ],
             backgroundColor: Colors.white),
         body: mainCmp);
@@ -236,6 +214,7 @@ class StopHeadingItem {
 
     return ListTile(
         onTap: () {
+          FocusScope.of(context).unfocus();
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => StopPage(stop: this.stop)),
@@ -251,11 +230,11 @@ class StopHeadingItem {
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           minFontSize: 16.0,
-                          style: Theme.of(context).textTheme.headline6!)),
+                          style: Theme.of(context).textTheme.titleLarge!)),
                   Text(offset != null ? "${offset.round()} m" : '',
                       style: Theme.of(context)
                           .textTheme
-                          .headline6!
+                          .titleLarge!
                           .copyWith(color: Colors.grey))
                 ])));
   }
