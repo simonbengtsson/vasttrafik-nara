@@ -9,7 +9,6 @@ class Journey {
   String? track;
   late DateTime plannedTime;
   late DateTime date;
-  late String time;
   late Color bgColor;
   late Color fgColor;
   late Stop nextStop;
@@ -29,14 +28,13 @@ class Journey {
 
     var planned = data['plannedTime'];
     var estimated = data['estimatedTime'] ?? planned;
-    plannedTime = DateTime.parse(planned);
-    date = DateTime.parse(estimated);
-    time = date.hour.toString();
+    plannedTime = parseVasttrafikDate(planned);
+    date = parseVasttrafikDate(estimated);
     bgColor = _hexColor(line['backgroundColor']);
     fgColor = _hexColor(line['foregroundColor']);
 
-    stopId = line['gid'];
     journeyId = data['detailsReference'];
+    stopId = stopPoint['gid'];
     track = stopPoint['platform'];
   }
 }
@@ -62,6 +60,26 @@ class Stop {
     lat = data['latitude'];
     lon = data['longitude'] ?? 0;
   }
+}
+
+class JourneyStop {
+  late DateTime? departureTime;
+  late String platform;
+  late String stopPointId;
+  late Stop stop;
+
+  JourneyStop(Map data) {
+    // Arrival time is used for last stop
+    var time = data['plannedDepartureTime'] ?? data['estimatedArrivalTime'];
+    departureTime = time != null ? parseVasttrafikDate(time) : null;
+    platform = data['plannedPlatform'];
+    stopPointId = data['stopPoint']['gid'];
+    stop = Stop(data['stopPoint']['stopArea']);
+  }
+}
+
+parseVasttrafikDate(String dateStr) {
+  return DateTime.parse(dateStr).toLocal();
 }
 
 class Coordinate {
@@ -100,13 +118,13 @@ class VasttrafikApi {
     return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
   }
 
-  Future<List<Stop>> getJourney(String ref) async {
+  Future<List<JourneyStop>> getJourneyStops(String ref) async {
     String url = basePath + '/journeys/${ref}/details';
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
-    return List<Stop>.from(map['tripLegs'][0]['callsOnTripLeg']
-        .map((it) => Stop(it['stopPoint']['stopArea'])));
+    return List<JourneyStop>.from(
+        map['tripLegs'][0]['callsOnTripLeg'].map((it) => JourneyStop(it)));
   }
 
   Future<List<Journey>> getDepartures(String stopId) async {

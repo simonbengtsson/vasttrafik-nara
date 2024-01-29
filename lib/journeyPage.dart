@@ -1,3 +1,4 @@
+import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/stopPage.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 import 'package:vasttrafik_nara/env.dart';
@@ -15,13 +16,13 @@ class JourneyPage extends StatefulWidget {
 }
 
 class _JourneyPageState extends State<JourneyPage> {
-  Journey departure;
-  List<Stop> stops = [];
+  Journey journey;
+  List<JourneyStop> stops = [];
   ScrollController? _scrollController;
 
   bool loading = true;
 
-  _JourneyPageState(this.departure);
+  _JourneyPageState(this.journey);
 
   @override
   initState() {
@@ -31,8 +32,8 @@ class _JourneyPageState extends State<JourneyPage> {
 
   fetchData() async {
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-    var ref = this.departure.journeyId;
-    var stops = await api.getJourney(ref);
+    var ref = this.journey.journeyId;
+    var stops = await api.getJourneyStops(ref);
 
     if (this.mounted) {
       this.setState(() {
@@ -50,11 +51,12 @@ class _JourneyPageState extends State<JourneyPage> {
 
   @override
   Widget build(BuildContext context) {
-    Color fgColor = this.departure.fgColor;
+    Color fgColor = this.journey.fgColor;
     var lum = fgColor.computeLuminance();
 
-    var stopIndex =
-        this.stops.indexWhere((stop) => stop.id == this.departure.stopId);
+    var stopIndex = this
+        .stops
+        .indexWhere((stop) => stop.stopPointId == this.journey.stopId);
     this._scrollController =
         ScrollController(initialScrollOffset: stopIndex * 56.0);
 
@@ -72,14 +74,18 @@ class _JourneyPageState extends State<JourneyPage> {
             controller: this._scrollController,
             itemBuilder: (context, index) {
               final stop = this.stops[index];
+              var isActive = stop.stopPointId == this.journey.stopId;
+              var time = '';
+              var depTime = stop.departureTime;
+              if (depTime != null) {
+                time = formatDepartureTime(depTime);
+              }
               var style = TextStyle(
                 fontSize: 18.0,
-                color: stop.id == this.departure.stopId
+                color: isActive
                     ? Colors.black
                     : Colors.black.withOpacity(index < stopIndex ? 0.3 : 0.8),
-                fontWeight: stop.id == this.departure.stopId
-                    ? FontWeight.w900
-                    : FontWeight.w500,
+                fontWeight: isActive ? FontWeight.w900 : FontWeight.w500,
               );
 
               return Container(
@@ -88,24 +94,25 @@ class _JourneyPageState extends State<JourneyPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => StopPage(stop: stop)),
+                      builder: (context) => StopPage(stop: stop.stop),
+                    ),
                   );
                 },
-                selected: stop.id == this.departure.stopId,
-                title: Text(stop.name, style: style),
-                //trailing: Text(stop.name, style: style),
+                selected: isActive,
+                title: Text(stop.stop.name, style: style),
+                trailing: Text(time, style: style),
               ));
             });
 
-    var name = this.departure.shortName + ' ' + this.departure.direction;
+    var name = this.journey.shortName + ' ' + this.journey.direction;
     return Scaffold(
         appBar: AppBar(
           backgroundColor: fgColor,
           systemOverlayStyle: lum < 0.7
               ? SystemUiOverlayStyle.light
               : SystemUiOverlayStyle.dark,
-          iconTheme: IconThemeData(color: this.departure.bgColor),
-          title: Text(name, style: TextStyle(color: this.departure.bgColor)),
+          iconTheme: IconThemeData(color: this.journey.bgColor),
+          title: Text(name, style: TextStyle(color: this.journey.bgColor)),
         ),
         body: listView);
   }

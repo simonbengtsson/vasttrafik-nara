@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 
 showAlertDialog(BuildContext context,
     {required String title, required String message, Function? action}) {
@@ -65,4 +66,9 @@ Future<Position> getCurrentLocation(BuildContext context) async {
 distanceBetween(Position a, Position b) {
   return Geolocator.distanceBetween(
       a.latitude, a.longitude, b.latitude, b.longitude);
+}
+
+String formatDepartureTime(DateTime date) {
+  String formattedDate = DateFormat('HH:mm').format(date);
+  return formattedDate;
 }
