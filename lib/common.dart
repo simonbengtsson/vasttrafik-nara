@@ -70,7 +70,7 @@ distanceBetween(Position a, Position b) {
 
 String formatDepartureTime(DateTime date, bool relative) {
   if (relative) {
-    var timeDiff = date.difference(DateTime.now()).abs();
+    var timeDiff = date.difference(DateTime.now());
     if (timeDiff.inMinutes < 1) {
       return 'Now';
     } else if (timeDiff.inMinutes < 30) {
