@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:http/http.dart' as http;
 
-class Departure {
+class Journey {
   late String name;
   late String shortName;
   late String direction;
@@ -16,7 +16,7 @@ class Departure {
   late String stopId;
   late String journeyId;
 
-  Departure(Map data) {
+  Journey(Map data) {
     var service = data['serviceJourney'];
     var line = data['serviceJourney']['line'];
     var stopPoint = data['stopPoint'];
@@ -64,15 +64,6 @@ class Stop {
   }
 }
 
-class Journey {
-  late List<Stop> stops;
-
-  Journey(Map data) {
-    stops = List<Stop>.from(data['tripLegs'][0]['callsOnTripLeg']
-        .map((it) => Stop(it['stopPoint']['stopArea'])));
-  }
-}
-
 class Coordinate {
   double latitude;
   double longitude;
@@ -109,22 +100,23 @@ class VasttrafikApi {
     return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
   }
 
-  Future<Journey> getJourney(String ref) async {
+  Future<List<Stop>> getJourney(String ref) async {
     String url = basePath + '/journeys/${ref}/details';
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
-    return Journey(map);
+    return List<Stop>.from(map['tripLegs'][0]['callsOnTripLeg']
+        .map((it) => Stop(it['stopPoint']['stopArea'])));
   }
 
-  Future<List<Departure>> getDepartures(String stopId) async {
+  Future<List<Journey>> getDepartures(String stopId) async {
     String path = "/stop-areas/${stopId}/departures";
     String queryString = "?maxDeparturesPerLineAndDirection=10&limit=20";
     String url = basePath + path + queryString;
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
-    return List<Departure>.from(map['results'].map((it) => Departure(it)));
+    return List<Journey>.from(map['results'].map((it) => Journey(it)));
   }
 
   _callApi(String url) async {
@@ -144,7 +136,6 @@ class VasttrafikApi {
     var body = 'grant_type=client_credentials';
 
     Uri uri = Uri.parse(url);
-    print(uri);
     var res = await http.post(uri,
         headers: {
           'Authorization': authHeader,

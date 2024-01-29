@@ -6,7 +6,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/env.dart';
-import 'package:vasttrafik_nara/stop.dart';
+import 'package:vasttrafik_nara/stopPage.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
 var gothenburgLocation = Coordinate(57.7068421, 11.9704796);

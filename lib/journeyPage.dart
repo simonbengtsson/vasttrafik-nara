@@ -1,27 +1,27 @@
-import 'package:vasttrafik_nara/stop.dart';
+import 'package:vasttrafik_nara/stopPage.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 import 'package:vasttrafik_nara/env.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class JourneyScreen extends StatefulWidget {
-  final Departure departure;
+class JourneyPage extends StatefulWidget {
+  final Journey journey;
 
-  JourneyScreen(this.departure);
+  JourneyPage(this.journey);
 
   @override
-  createState() => _JourneyScreenState(this.departure);
+  createState() => _JourneyPageState(this.journey);
 }
 
-class _JourneyScreenState extends State<JourneyScreen> {
-  Departure departure;
+class _JourneyPageState extends State<JourneyPage> {
+  Journey departure;
   List<Stop> stops = [];
   ScrollController? _scrollController;
 
   bool loading = true;
 
-  _JourneyScreenState(this.departure);
+  _JourneyPageState(this.departure);
 
   @override
   initState() {
@@ -32,11 +32,11 @@ class _JourneyScreenState extends State<JourneyScreen> {
   fetchData() async {
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
     var ref = this.departure.journeyId;
-    var journey = await api.getJourney(ref);
+    var stops = await api.getJourney(ref);
 
     if (this.mounted) {
       this.setState(() {
-        this.stops = journey.stops;
+        this.stops = stops;
         this.loading = false;
       });
     }
@@ -93,7 +93,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                 },
                 selected: stop.id == this.departure.stopId,
                 title: Text(stop.name, style: style),
-                trailing: Text(stop.name, style: style),
+                //trailing: Text(stop.name, style: style),
               ));
             });
 
@@ -102,8 +102,8 @@ class _JourneyScreenState extends State<JourneyScreen> {
         appBar: AppBar(
           backgroundColor: fgColor,
           systemOverlayStyle: lum < 0.7
-              ? SystemUiOverlayStyle.dark
-              : SystemUiOverlayStyle.light,
+              ? SystemUiOverlayStyle.light
+              : SystemUiOverlayStyle.dark,
           iconTheme: IconThemeData(color: this.departure.bgColor),
           title: Text(name, style: TextStyle(color: this.departure.bgColor)),
         ),
