@@ -68,7 +68,15 @@ distanceBetween(Position a, Position b) {
       a.latitude, a.longitude, b.latitude, b.longitude);
 }
 
-String formatDepartureTime(DateTime date) {
+String formatDepartureTime(DateTime date, bool relative) {
+  if (relative) {
+    var timeDiff = date.difference(DateTime.now()).abs();
+    if (timeDiff.inMinutes < 1) {
+      return 'Now';
+    } else if (timeDiff.inMinutes < 30) {
+      return '${timeDiff.inMinutes}';
+    }
+  }
   String formattedDate = DateFormat('HH:mm').format(date);
   return formattedDate;
 }

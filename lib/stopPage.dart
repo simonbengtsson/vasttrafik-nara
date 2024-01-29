@@ -72,7 +72,8 @@ class _StopPageState extends State<StopPage> {
           subtitle: subtitle.isEmpty
               ? null
               : Text(subtitle, style: TextStyle(color: departure.bgColor)),
-          trailing: Text(formatDepartureTime(departure.date), style: textStyle),
+          trailing:
+              Text(formatDepartureTime(departure.date, true), style: textStyle),
         ));
   }
 

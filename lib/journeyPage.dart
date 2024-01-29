@@ -78,7 +78,7 @@ class _JourneyPageState extends State<JourneyPage> {
               var time = '';
               var depTime = stop.departureTime;
               if (depTime != null) {
-                time = formatDepartureTime(depTime);
+                time = formatDepartureTime(depTime, false);
               }
               var style = TextStyle(
                 fontSize: 18.0,
