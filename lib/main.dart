@@ -1,7 +1,10 @@
+import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/homePage.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initMixpanel();
   runApp(MyApp());
 }
 

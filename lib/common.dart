@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+
+late Mixpanel mixpanelInstance;
+
+initMixpanel() async {
+  mixpanelInstance = await Mixpanel.init("563842b985116f25ac9bfdea7b799cf8");
+}
 
 showAlertDialog(BuildContext context,
     {required String title, required String message, Function? action}) {
@@ -73,7 +80,7 @@ String formatDepartureTime(DateTime date, bool relative) {
     var timeDiff = date.difference(DateTime.now());
     if (timeDiff.inMinutes < 1) {
       return 'Now';
-    } else if (timeDiff.inMinutes < 30) {
+    } else if (timeDiff.inMinutes < 60) {
       return '${timeDiff.inMinutes}';
     }
   }

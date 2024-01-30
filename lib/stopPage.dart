@@ -15,33 +15,40 @@ class StopPage extends StatefulWidget {
 }
 
 class _StopPageState extends State<StopPage> {
-  List<Journey> departures = [];
-  List<Stop> nextStops = [];
+  List<Journey> journeys = [];
 
   @override
   initState() {
     super.initState();
-    fetchData();
+    fetchData().then((list) {
+      mixpanelInstance.track('Page Viewed', properties: {
+        'Page Name': 'Stop',
+        'Stop Name': widget.stop.name,
+        'Stop Id': widget.stop.id,
+        'Shown Journey Count': list.length,
+      });
+    });
   }
 
-  fetchData() async {
+  Future<List<Journey>> fetchData() async {
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
 
     var stopId = this.widget.stop.id;
-    var departs = await api.getDepartures(stopId);
-    departs.sort((a, b) {
+    var journeys = await api.getDepartures(stopId);
+    journeys.sort((a, b) {
       return a.date.compareTo(b.date);
     });
 
     if (mounted) {
       this.setState(() {
-        this.departures = departs;
+        this.journeys = journeys;
       });
     }
+    return journeys;
   }
 
   Widget buildItem(Journey departure) {
-    var subtitle = departure.track == null ? '' : 'Läge ${departure.track}';
+    var subtitle = departure.track == null ? '' : departure.track!;
     var direction = departure.direction;
     final viaIndex = direction.indexOf(' via ');
     if (viaIndex > 0) {
@@ -79,10 +86,6 @@ class _StopPageState extends State<StopPage> {
 
   @override
   Widget build(BuildContext context) {
-    this.nextStops.sort((a, b) {
-      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-    });
-
     var loader = Padding(
         padding: EdgeInsets.all(20.0),
         child: Center(
@@ -95,12 +98,12 @@ class _StopPageState extends State<StopPage> {
         title: Text(this.widget.stop.name),
         actions: [],
       ),
-      body: this.departures.length == 0
+      body: this.journeys.length == 0
           ? loader
           : ListView.builder(
-              itemCount: departures.length,
+              itemCount: journeys.length,
               itemBuilder: (context, index) {
-                final item = departures[index];
+                final item = journeys[index];
                 return buildItem(item);
               }),
     );

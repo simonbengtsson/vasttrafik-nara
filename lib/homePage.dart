@@ -27,14 +27,22 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   initState() {
     super.initState();
-    fetchData();
+    fetchData().then((item) {
+      mixpanelInstance.track('Page Viewed', properties: {
+        'Page Name': 'Home',
+        'Shown Stop Count': item.$1?.length ?? 0,
+        'Uses Device Location': item.$2 != null ? 'Yes' : 'No',
+        'Distance Away': item.$3 ?? null,
+      });
+    });
   }
 
-  fetchData() async {
+  Future<(List<Stop>?, Position?, double?)> fetchData() async {
+    double? distanceAway;
     try {
       var position =
           await getCurrentLocation(context).timeout(Duration(seconds: 5));
-      var distanceAway = Geolocator.distanceBetween(
+      distanceAway = Geolocator.distanceBetween(
           position.latitude,
           position.longitude,
           gothenburgLocation.latitude,
@@ -49,7 +57,13 @@ class _MyHomePageState extends State<MyHomePage> {
       var details = FlutterErrorDetails(exception: error, stack: stack);
       FlutterError.presentError(details);
       print('Error getting location. Details above');
+      mixpanelInstance.track('Error Triggered', properties: {
+        'Error Message': 'Could not get location',
+        'Thrown Error': error.toString(),
+        'Thrown Stack': stack.toString(),
+      });
     }
+    List<Stop>? stops;
     try {
       var currentLocation = this.currentLocation == null
           ? gothenburgLocation
@@ -57,17 +71,23 @@ class _MyHomePageState extends State<MyHomePage> {
               this.currentLocation!.latitude, this.currentLocation!.longitude);
       VasttrafikApi api =
           VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-      var stops = await api.getNearby(currentLocation);
+      stops = await api.getNearby(currentLocation);
 
       this.setState(() {
-        this.nearbyStops = stops;
+        this.nearbyStops = stops!;
         this.fetchComplete = true;
       });
     } catch (error, stack) {
       var details = FlutterErrorDetails(exception: error, stack: stack);
       FlutterError.presentError(details);
+      mixpanelInstance.track('Error Triggered', properties: {
+        'Error Message': 'Could not get stops',
+        'Thrown Error': error.toString(),
+        'Thrown Stack': stack.toString(),
+      });
       print('Error getting vasttrafik stops');
     }
+    return (stops, this.currentLocation, distanceAway);
   }
 
   final _controller = TextEditingController();
@@ -139,8 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
         var stops = pattern.isNotEmpty ? await api.search(pattern) : null;
         return stops;
       },
-      itemBuilder: (context, inputStop) {
-        var stop = inputStop as Stop;
+      itemBuilder: (context, stop) {
         return ListTile(
           title: Text(stop.name),
         );
@@ -148,9 +167,14 @@ class _MyHomePageState extends State<MyHomePage> {
       onSelected: (stop) {
         _controller.clear();
         FocusScope.of(context).unfocus();
+        mixpanelInstance.track('Stop Search Result Tapped', properties: {
+          'Stop Name': stop.name,
+          'Stop Id': stop.id,
+          'Search Query': _controller.text
+        });
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => StopPage(stop: stop as Stop)),
+          MaterialPageRoute(builder: (context) => StopPage(stop: stop)),
         );
       },
     );

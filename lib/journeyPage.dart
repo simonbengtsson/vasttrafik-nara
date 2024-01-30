@@ -27,10 +27,18 @@ class _JourneyPageState extends State<JourneyPage> {
   @override
   initState() {
     super.initState();
-    fetchData();
+    fetchData().then((item) {
+      mixpanelInstance.track('Page Viewed', properties: {
+        'Page Name': 'Journey',
+        'Journey Name': journey.name,
+        'Journey Direction': journey.direction,
+        'Journey Id': journey.journeyId,
+        'Shown Stop Count': item.length
+      });
+    });
   }
 
-  fetchData() async {
+  Future<List<JourneyStop>> fetchData() async {
     VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
     var ref = this.journey.journeyId;
     var stops = await api.getJourneyStops(ref);
@@ -41,6 +49,7 @@ class _JourneyPageState extends State<JourneyPage> {
         this.loading = false;
       });
     }
+    return stops;
   }
 
   hexColor(hexStr) {
