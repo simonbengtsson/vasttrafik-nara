@@ -28,7 +28,7 @@ class _JourneyPageState extends State<JourneyPage> {
   initState() {
     super.initState();
     fetchData().then((item) {
-      mixpanelInstance.track('Page Viewed', properties: {
+      mixpanelInstance.track('Page Shown', properties: {
         'Page Name': 'Journey',
         'Journey Name': journey.name,
         'Journey Direction': journey.direction,

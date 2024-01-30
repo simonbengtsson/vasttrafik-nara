@@ -6,7 +6,8 @@ import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 late Mixpanel mixpanelInstance;
 
 initMixpanel() async {
-  mixpanelInstance = await Mixpanel.init("563842b985116f25ac9bfdea7b799cf8");
+  mixpanelInstance = await Mixpanel.init("563842b985116f25ac9bfdea7b799cf8",
+      trackAutomaticEvents: false);
 }
 
 showAlertDialog(BuildContext context,

@@ -28,7 +28,7 @@ class _MyHomePageState extends State<MyHomePage> {
   initState() {
     super.initState();
     fetchData().then((item) {
-      mixpanelInstance.track('Page Viewed', properties: {
+      mixpanelInstance.track('Page Shown', properties: {
         'Page Name': 'Home',
         'Shown Stop Count': item.$1?.length ?? 0,
         'Uses Device Location': item.$2 != null ? 'Yes' : 'No',

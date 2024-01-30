@@ -21,7 +21,7 @@ class _StopPageState extends State<StopPage> {
   initState() {
     super.initState();
     fetchData().then((list) {
-      mixpanelInstance.track('Page Viewed', properties: {
+      mixpanelInstance.track('Page Shown', properties: {
         'Page Name': 'Stop',
         'Stop Name': widget.stop.name,
         'Stop Id': widget.stop.id,
