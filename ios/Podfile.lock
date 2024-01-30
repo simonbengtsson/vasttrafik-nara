@@ -8,6 +8,12 @@ PODS:
     - Flutter
   - integration_test (0.0.1):
     - Flutter
+  - Mixpanel-swift (3.0.0.beta.5):
+    - Mixpanel-swift/Complete (= 3.0.0.beta.5)
+  - Mixpanel-swift/Complete (3.0.0.beta.5)
+  - mixpanel_flutter (1.3.1):
+    - Flutter
+    - Mixpanel-swift (= 3.0.0.beta.5)
   - pointer_interceptor_ios (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -20,8 +26,13 @@ DEPENDENCIES:
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - mixpanel_flutter (from `.symlinks/plugins/mixpanel_flutter/ios`)
   - pointer_interceptor_ios (from `.symlinks/plugins/pointer_interceptor_ios/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+
+SPEC REPOS:
+  trunk:
+    - Mixpanel-swift
 
 EXTERNAL SOURCES:
   device_info_plus:
@@ -34,6 +45,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/geolocator_apple/ios"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
+  mixpanel_flutter:
+    :path: ".symlinks/plugins/mixpanel_flutter/ios"
   pointer_interceptor_ios:
     :path: ".symlinks/plugins/pointer_interceptor_ios/ios"
   shared_preferences_foundation:
@@ -45,6 +58,8 @@ SPEC CHECKSUMS:
   flutter_keyboard_visibility: 0339d06371254c3eb25eeb90ba8d17dca8f9c069
   geolocator_apple: 9157311f654584b9bb72686c55fc02a97b73f461
   integration_test: 13825b8a9334a850581300559b8839134b124670
+  Mixpanel-swift: 4e367aaff204bf7262e9ed665e7b380580cc06c1
+  mixpanel_flutter: 634444ba1fbab4d68f0faa8e5c231dfab344a278
   pointer_interceptor_ios: 9280618c0b2eeb80081a343924aa8ad756c21375
   shared_preferences_foundation: b4c3b4cddf1c21f02770737f147a3f5da9d39695
 
