@@ -5,8 +5,11 @@ import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
-final vasttrafikApi =
-    VasttrafikApi(Env.vasttrafikClientId, Env.vasttrafikClientSecret);
+final vasttrafikApi = VasttrafikApi(
+    Env.useAltCredentials ? Env.vasttrafikClientIdAlt : Env.vasttrafikClientId,
+    Env.useAltCredentials
+        ? Env.vasttrafikClientSecretAlt
+        : Env.vasttrafikClientSecret);
 late Mixpanel mixpanelInstance;
 
 initMixpanel() async {

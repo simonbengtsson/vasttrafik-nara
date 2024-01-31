@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:http/http.dart' as http;
+import 'package:vasttrafik_nara/env.dart';
 
 class Journey {
   late String name;
@@ -93,7 +94,8 @@ class VasttrafikApi {
   String clientId;
   String clientSecret;
 
-  String basePath = "https://ext-api.vasttrafik.se/pr/v4";
+  String basePath =
+      "https://ext-api.vasttrafik.se/pr/v4${Env.useAltCredentials ? '-int' : ''}";
 
   VasttrafikApi(this.clientId, this.clientSecret);
 
