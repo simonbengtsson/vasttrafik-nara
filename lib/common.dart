@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+import 'package:vasttrafik_nara/env.dart';
+import 'package:vasttrafik_nara/vasttrafik.dart';
 
+final vasttrafikApi =
+    VasttrafikApi(Env.vasttrafikClientId, Env.vasttrafikClientSecret);
 late Mixpanel mixpanelInstance;
 
 initMixpanel() async {

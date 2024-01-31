@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vasttrafik_nara/common.dart';
-import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/journeyPage.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
@@ -31,10 +30,8 @@ class _StopPageState extends State<StopPage> {
   }
 
   Future<List<Journey>> fetchData() async {
-    VasttrafikApi api = VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-
     var stopId = this.widget.stop.id;
-    var journeys = await api.getDepartures(stopId);
+    var journeys = await vasttrafikApi.getDepartures(stopId);
     journeys.sort((a, b) {
       return a.date.compareTo(b.date);
     });

@@ -69,9 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ? gothenburgLocation
           : Coordinate(
               this.currentLocation!.latitude, this.currentLocation!.longitude);
-      VasttrafikApi api =
-          VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-      stops = await api.getNearby(currentLocation);
+      stops = await vasttrafikApi.getNearby(currentLocation);
 
       this.setState(() {
         this.nearbyStops = stops!;
@@ -154,9 +152,8 @@ class _MyHomePageState extends State<MyHomePage> {
       },
       suggestionsCallback: (pattern) async {
         pattern = pattern.trim();
-        VasttrafikApi api =
-            VasttrafikApi(Env.vasttrafikKey, Env.vasttrafikSecret);
-        var stops = pattern.isNotEmpty ? await api.search(pattern) : null;
+        var stops =
+            pattern.isNotEmpty ? await vasttrafikApi.search(pattern) : null;
         return stops;
       },
       itemBuilder: (context, stop) {

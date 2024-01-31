@@ -90,12 +90,12 @@ class Coordinate {
 }
 
 class VasttrafikApi {
-  String authKey;
-  String authSecret;
+  String clientId;
+  String clientSecret;
 
   String basePath = "https://ext-api.vasttrafik.se/pr/v4";
 
-  VasttrafikApi(this.authKey, this.authSecret);
+  VasttrafikApi(this.clientId, this.clientSecret);
 
   Future<List<Stop>> search(query) async {
     String path = "/locations/by-text";
@@ -144,22 +144,13 @@ class VasttrafikApi {
   }
 
   _authorize() async {
-    const base64 = Base64Codec();
-    const utf8 = Utf8Codec();
-
-    String str = authKey + ':' + authSecret;
-    String authHeader = "Basic " + base64.encode(utf8.encode(str));
-
-    String url = 'https://ext-api.vasttrafik.se/token';
-    var body = 'grant_type=client_credentials';
-
-    Uri uri = Uri.parse(url);
-    var res = await http.post(uri,
-        headers: {
-          'Authorization': authHeader,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: body);
+    Uri uri = Uri.parse('https://ext-api.vasttrafik.se/token');
+    var res = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body:
+          'grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}',
+    );
 
     var json = jsonDecode(res.body);
     return json['access_token'];
