@@ -1,7 +1,6 @@
 import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/stopPage.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
-import 'package:vasttrafik_nara/env.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +16,7 @@ class JourneyPage extends StatefulWidget {
 
 class _JourneyPageState extends State<JourneyPage> {
   Journey journey;
+  LivePosition? vehiclePosition;
   List<JourneyStop> stops = [];
   ScrollController? _scrollController;
 
@@ -32,14 +32,14 @@ class _JourneyPageState extends State<JourneyPage> {
         'Page Name': 'Journey',
         'Journey Name': journey.name,
         'Journey Direction': journey.direction,
-        'Journey Id': journey.journeyId,
+        'Journey Id': journey.journeyRefId,
         'Shown Stop Count': item.length
       });
     });
   }
 
   Future<List<JourneyStop>> fetchData() async {
-    var ref = this.journey.journeyId;
+    var ref = this.journey.journeyRefId;
     var stops = await vasttrafikApi.getJourneyStops(ref);
 
     if (this.mounted) {
@@ -48,6 +48,14 @@ class _JourneyPageState extends State<JourneyPage> {
         this.loading = false;
       });
     }
+
+    final res = await vasttrafikApi.vehiclePosition(this.journey.journeyGid);
+    if (this.mounted) {
+      this.setState(() {
+        this.vehiclePosition = res;
+      });
+    }
+
     return stops;
   }
 
@@ -113,6 +121,7 @@ class _JourneyPageState extends State<JourneyPage> {
             });
 
     var name = this.journey.shortName + ' ' + this.journey.direction;
+    var pos = this.vehiclePosition;
     return Scaffold(
         appBar: AppBar(
           backgroundColor: fgColor,
@@ -120,6 +129,18 @@ class _JourneyPageState extends State<JourneyPage> {
               ? SystemUiOverlayStyle.light
               : SystemUiOverlayStyle.dark,
           iconTheme: IconThemeData(color: this.journey.bgColor),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.navigate_next),
+              tooltip:
+                  'Vehicle Position (${pos?.updatedAt.toIso8601String() ?? '...'})',
+              onPressed: pos == null
+                  ? null
+                  : () async {
+                      await openMap(context, pos.lat, pos.lon);
+                    },
+            ),
+          ],
           title: Text(name, style: TextStyle(color: this.journey.bgColor)),
         ),
         body: listView);

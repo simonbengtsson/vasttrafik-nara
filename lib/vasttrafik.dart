@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:vasttrafik_nara/env.dart';
 
 class Journey {
+  late Map data;
   late String name;
   late String shortName;
   late String direction;
@@ -14,7 +15,11 @@ class Journey {
   late Color fgColor;
   late Stop nextStop;
   late String stopId;
-  late String journeyId;
+  late String journeyRefId;
+
+  String get journeyGid {
+    return data['serviceJourney']['gid'];
+  }
 
   Journey(Map data) {
     var service = data['serviceJourney'];
@@ -34,9 +39,10 @@ class Journey {
     bgColor = _hexColor(line['backgroundColor']);
     fgColor = _hexColor(line['foregroundColor']);
 
-    journeyId = data['detailsReference'];
+    journeyRefId = data['detailsReference'];
     stopId = stopPoint['gid'];
     track = stopPoint['platform'];
+    this.data = data;
   }
 }
 
@@ -90,30 +96,57 @@ class Coordinate {
   Coordinate(this.latitude, this.longitude);
 }
 
+class LivePosition {
+  late bool atStop;
+  late double lat;
+  late double lon;
+  late double speed;
+  late DateTime updatedAt;
+
+  LivePosition(Map data) {
+    atStop = data['atStop'];
+    lat = data['lat'];
+    lon = data['long'];
+    speed = data['speed'];
+    updatedAt = parseVasttrafikDate(data['updatedAt']);
+  }
+}
+
 class VasttrafikApi {
   String clientId;
   String clientSecret;
 
-  String basePath =
+  String basePlaneraResaApi =
       "https://ext-api.vasttrafik.se/pr/v4${Env.useAltCredentials ? '-int' : ''}";
+  String baseFposApi =
+      "https://ext-api.vasttrafik.se/fpos/v1"; // Only supported with alt credentials
 
   VasttrafikApi(this.clientId, this.clientSecret);
 
   Future<List<Stop>> search(query) async {
     String path = "/locations/by-text";
     String queryString = "?q=$query&types=stoparea";
-    String url = basePath + path + queryString;
+    String url = basePlaneraResaApi + path + queryString;
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
     return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
   }
 
+  Future<LivePosition> vehiclePosition(String journeyId) async {
+    String path = "/positions/${journeyId}";
+    String url = baseFposApi + path;
+    var res = await _callApi(url);
+    var json = res.body;
+    var map = jsonDecode(json);
+    return LivePosition(map);
+  }
+
   Future<List<Stop>> getNearby(Coordinate latLng) async {
     String path = "/locations/by-coordinates";
     String queryString =
         "?latitude=${latLng.latitude}&longitude=${latLng.longitude}&limit=500&types=stoparea";
-    String url = basePath + path + queryString;
+    String url = basePlaneraResaApi + path + queryString;
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
@@ -121,7 +154,7 @@ class VasttrafikApi {
   }
 
   Future<List<JourneyStop>> getJourneyStops(String ref) async {
-    String url = basePath + '/journeys/${ref}/details';
+    String url = basePlaneraResaApi + '/journeys/${ref}/details';
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
@@ -132,7 +165,7 @@ class VasttrafikApi {
   Future<List<Journey>> getDepartures(String stopId) async {
     String path = "/stop-areas/${stopId}/departures";
     String queryString = "?maxDeparturesPerLineAndDirection=10&limit=20";
-    String url = basePath + path + queryString;
+    String url = basePlaneraResaApi + path + queryString;
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);

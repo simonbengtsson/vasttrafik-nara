@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
@@ -17,6 +18,19 @@ initMixpanel() async {
     "563842b985116f25ac9bfdea7b799cf8",
     trackAutomaticEvents: true,
   );
+}
+
+Future<void> openMap(
+    BuildContext context, double latitude, double longitude) async {
+  final googleUrl = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude');
+  if (await canLaunchUrl(googleUrl)) {
+    await launchUrl(googleUrl);
+  } else {
+    showAlertDialog(context,
+        title: 'Oops',
+        message: 'Could not open Google Maps. Make sure it is installed.');
+  }
 }
 
 showAlertDialog(BuildContext context,
