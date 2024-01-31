@@ -113,6 +113,7 @@ class LivePosition {
 }
 
 class VasttrafikApi {
+  String? authToken;
   String clientId;
   String clientSecret;
 
@@ -133,12 +134,15 @@ class VasttrafikApi {
     return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
   }
 
-  Future<LivePosition> vehiclePosition(String journeyId) async {
+  Future<LivePosition?> vehiclePosition(String journeyId) async {
     String path = "/positions/${journeyId}";
     String url = baseFposApi + path;
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
+    if (map['status'] == 404) {
+      return null;
+    }
     return LivePosition(map);
   }
 
@@ -174,11 +178,10 @@ class VasttrafikApi {
 
   _callApi(String url) async {
     Uri uri = Uri.parse(url);
-    String token = await _authorize();
-    return http.get(uri, headers: {'Authorization': "Bearer $token"});
+    return http.get(uri, headers: {'Authorization': "Bearer ${authToken!}"});
   }
 
-  _authorize() async {
+  authorize() async {
     Uri uri = Uri.parse('https://ext-api.vasttrafik.se/token');
     var res = await http.post(
       uri,
@@ -188,6 +191,6 @@ class VasttrafikApi {
     );
 
     var json = jsonDecode(res.body);
-    return json['access_token'];
+    authToken = json['access_token'];
   }
 }

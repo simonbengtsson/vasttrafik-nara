@@ -57,9 +57,6 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     final coords =
         widget.stops.map((e) => LatLng(e.stop.lat, e.stop.lon)).toList();
-    final vehiclePosition = LatLng(
-        this.vehiclePosition?.lat ?? coords.first.latitude,
-        this.vehiclePosition?.lon ?? coords.first.longitude);
     final isRecent = this.vehiclePosition != null &&
         this
             .vehiclePosition!
@@ -110,26 +107,26 @@ class _MapPageState extends State<MapPage> {
                   ),
                 );
               }),
-              Marker(
-                rotate: true,
-                point: vehiclePosition,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isRecent
-                        ? widget.journey.bgColor
-                        : widget.journey.fgColor,
-                    borderRadius: BorderRadius.circular(100),
+              if (this.vehiclePosition != null)
+                Marker(
+                  rotate: true,
+                  point: LatLng(
+                      this.vehiclePosition!.lat, this.vehiclePosition!.lon),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: widget.journey.bgColor,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: isRecent
+                        ? Icon(
+                            Icons.train,
+                            color: widget.journey.fgColor,
+                          )
+                        : CupertinoActivityIndicator(
+                            color: widget.journey.fgColor,
+                          ),
                   ),
-                  child: isRecent
-                      ? Icon(
-                          Icons.train,
-                          color: widget.journey.fgColor,
-                        )
-                      : CupertinoActivityIndicator(
-                          color: widget.journey.bgColor,
-                        ),
                 ),
-              ),
             ],
           ),
         ],

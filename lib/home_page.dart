@@ -37,6 +37,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<(List<Stop>?, Position?, double?)> fetchData() async {
+    Future? authPromise;
+    if (vasttrafikApi.authToken == null) {
+      authPromise = vasttrafikApi.authorize();
+    }
     double? distanceAway;
     try {
       var position =
@@ -68,6 +72,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ? gothenburgLocation
           : Coordinate(
               this.currentLocation!.latitude, this.currentLocation!.longitude);
+      if (authPromise != null) {
+        await authPromise;
+      }
       stops = await vasttrafikApi.getNearby(currentLocation);
 
       this.setState(() {
