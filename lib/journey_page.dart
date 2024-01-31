@@ -1,5 +1,6 @@
 import 'package:vasttrafik_nara/common.dart';
-import 'package:vasttrafik_nara/stopPage.dart';
+import 'package:vasttrafik_nara/map_page.dart';
+import 'package:vasttrafik_nara/stop_page.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,6 @@ class JourneyPage extends StatefulWidget {
 
 class _JourneyPageState extends State<JourneyPage> {
   Journey journey;
-  LivePosition? vehiclePosition;
   List<JourneyStop> stops = [];
   ScrollController? _scrollController;
 
@@ -46,13 +46,6 @@ class _JourneyPageState extends State<JourneyPage> {
       this.setState(() {
         this.stops = stops;
         this.loading = false;
-      });
-    }
-
-    final res = await vasttrafikApi.vehiclePosition(this.journey.journeyGid);
-    if (this.mounted) {
-      this.setState(() {
-        this.vehiclePosition = res;
       });
     }
 
@@ -120,8 +113,6 @@ class _JourneyPageState extends State<JourneyPage> {
               ));
             });
 
-    var name = this.journey.shortName + ' ' + this.journey.direction;
-    var pos = this.vehiclePosition;
     return Scaffold(
         appBar: AppBar(
           backgroundColor: fgColor,
@@ -132,16 +123,22 @@ class _JourneyPageState extends State<JourneyPage> {
           actions: [
             IconButton(
               icon: const Icon(Icons.map),
-              tooltip:
-                  'Vehicle Position (${pos?.updatedAt.toIso8601String() ?? '...'})',
-              onPressed: pos == null
+              tooltip: 'Map',
+              onPressed: stops.isEmpty
                   ? null
                   : () async {
-                      await openMap(context, pos.lat, pos.lon);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              MapPage(journey: widget.journey, stops: stops),
+                        ),
+                      );
                     },
             ),
           ],
-          title: Text(name, style: TextStyle(color: this.journey.bgColor)),
+          title: Text(this.journey.shortName + ' ' + this.journey.direction,
+              style: TextStyle(color: this.journey.bgColor)),
         ),
         body: listView);
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vasttrafik_nara/common.dart';
-import 'package:vasttrafik_nara/journeyPage.dart';
+import 'package:vasttrafik_nara/journey_page.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
 class StopPage extends StatefulWidget {
