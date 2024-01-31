@@ -131,7 +131,7 @@ class _JourneyPageState extends State<JourneyPage> {
           iconTheme: IconThemeData(color: this.journey.bgColor),
           actions: [
             IconButton(
-              icon: const Icon(Icons.navigate_next),
+              icon: const Icon(Icons.map),
               tooltip:
                   'Vehicle Position (${pos?.updatedAt.toIso8601String() ?? '...'})',
               onPressed: pos == null
