@@ -40,7 +40,7 @@ class _JourneyPageState extends State<JourneyPage> {
 
   Future<List<JourneyStop>> fetchData() async {
     var ref = this.journey.journeyRefId;
-    var stops = await vasttrafikApi.getJourneyStops(ref);
+    var stops = await vasttrafikApi.getJourneyStops(this.journey.stopId, ref);
 
     if (this.mounted) {
       this.setState(() {

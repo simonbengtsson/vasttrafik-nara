@@ -97,13 +97,25 @@ class Coordinate {
 }
 
 class LivePosition {
+  late double lat;
+  late double lon;
+  late DateTime updatedAt;
+
+  LivePosition(Map data) {
+    lat = data['latitude'];
+    lon = data['longitude'];
+    updatedAt = DateTime.now();
+  }
+}
+
+class LivePositionInternal {
   late bool atStop;
   late double lat;
   late double lon;
   late double speed;
   late DateTime updatedAt;
 
-  LivePosition(Map data) {
+  LivePositionInternal(Map data) {
     atStop = data['atStop'];
     lat = data['lat'];
     lon = data['long'];
@@ -134,7 +146,7 @@ class VasttrafikApi {
     return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
   }
 
-  Future<LivePosition?> vehiclePosition(String journeyId) async {
+  Future<LivePositionInternal?> vehiclePosition(String journeyId) async {
     String path = "/positions/${journeyId}";
     String url = baseFposApi + path;
     var res = await _callApi(url);
@@ -143,7 +155,32 @@ class VasttrafikApi {
     if (map['status'] == 404) {
       return null;
     }
-    return LivePosition(map);
+    return LivePositionInternal(map);
+  }
+
+  Future getAllVehicles(Coordinate lowerLeft, Coordinate upperRight) async {
+    String url =
+        '$basePlaneraResaApi/positions?lowerLeftLat=${lowerLeft.latitude}&lowerLeftLong=${lowerLeft.longitude}&upperRightLat=${upperRight.latitude}&upperRightLong=${upperRight.longitude}&limit=200';
+
+    var res = await _callApi(url);
+    var json = res.body;
+    var map = jsonDecode(json);
+    return LivePosition(map[0]);
+  }
+
+  Future<LivePosition?> getVehicles(String journeyRefId) async {
+    final highestValidLatitude = 90;
+    final lowestValidLatitude = -90;
+    final highestValidLongitude = 180;
+    final lowestValidLongitude = -180;
+    String url =
+        '$basePlaneraResaApi/positions?lowerLeftLat=${lowestValidLatitude}&lowerLeftLong=${lowestValidLongitude}&upperRightLat=${highestValidLatitude}&upperRightLong=${highestValidLongitude}&detailsReferences=${journeyRefId}&limit=1';
+
+//        '$basePlaneraResaApi/positions?lowerLeftLat=${lowerLeft.latitude}&lowerLeftLong=${lowerLeft.longitude}&upperRightLat=${upperRight.latitude}&upperRightLong=${upperRight.longitude}&detailsReferences=${}&limit=1';
+    var res = await _callApi(url);
+    var json = res.body;
+    var map = jsonDecode(json);
+    return map.isEmpty ? null : LivePosition(map[0]);
   }
 
   Future<List<Stop>> getNearby(Coordinate latLng) async {
@@ -157,7 +194,9 @@ class VasttrafikApi {
     return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
   }
 
-  Future<List<JourneyStop>> getJourneyStops(String ref) async {
+  Future<List<JourneyStop>> getJourneyStops(
+      String stopAreaId, String ref) async {
+    //String url2 = basePlaneraResaApi + '/stop-areas/$stopAreaId/departures/$ref/details';
     String url = basePlaneraResaApi + '/journeys/${ref}/details';
     var res = await _callApi(url);
     var json = res.body;

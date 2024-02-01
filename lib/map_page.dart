@@ -28,7 +28,7 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
       this.setState(() {
         // To change bus indicator even if no new data is available
         this.lastUpdated = DateTime.now();
@@ -47,12 +47,26 @@ class _MapPageState extends State<MapPage> {
   }
 
   fetchData() async {
-    final pos = await vasttrafikApi.vehiclePosition(widget.journey.journeyGid);
+    final lowerLeft = Coordinate(
+      widget.stops.map((e) => e.stop.lat).reduce((a, b) => a < b ? a : b),
+      widget.stops.map((e) => e.stop.lon).reduce((a, b) => a < b ? a : b),
+    );
+    final upperRight = Coordinate(
+      widget.stops.map((e) => e.stop.lat).reduce((a, b) => a > b ? a : b),
+      widget.stops.map((e) => e.stop.lon).reduce((a, b) => a > b ? a : b),
+    );
+    final res = await vasttrafikApi.getVehicles(widget.journey.journeyRefId);
     if (this.mounted) {
       this.setState(() {
-        this.vehiclePosition = pos;
+        this.vehiclePosition = res;
       });
     }
+    // final pos = await vasttrafikApi.vehiclePosition(widget.journey.journeyGid);
+    // if (this.mounted) {
+    //   this.setState(() {
+    //     this.vehiclePosition = pos;
+    //   });
+    // }
   }
 
   Widget buildOpenStreetMap() {
