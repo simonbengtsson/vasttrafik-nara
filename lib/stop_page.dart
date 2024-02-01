@@ -55,10 +55,10 @@ class _StopPageState extends State<StopPage> {
     }
 
     var textStyle = TextStyle(
-        color: departure.bgColor, fontSize: 18.0, fontWeight: FontWeight.bold);
+        color: departure.fgColor, fontSize: 18.0, fontWeight: FontWeight.bold);
     return Container(
         decoration: BoxDecoration(
-          color: departure.fgColor,
+          color: departure.bgColor,
         ),
         child: ListTile(
           onTap: () {

@@ -110,6 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     var listView = ListView.builder(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
