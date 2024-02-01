@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -18,6 +19,13 @@ initMixpanel() async {
     "563842b985116f25ac9bfdea7b799cf8",
     trackAutomaticEvents: true,
   );
+}
+
+trackEvent(String eventName, [Map<String, dynamic>? props]) {
+  if (!kDebugMode) {
+    mixpanelInstance.track(eventName, properties: props);
+  }
+  print('Logged: ${eventName}');
 }
 
 Future<void> openMap(

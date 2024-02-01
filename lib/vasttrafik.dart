@@ -73,6 +73,13 @@ class Stop {
   }
 }
 
+class JourneyDetail {
+  Map data;
+  List<JourneyStop> stops;
+
+  JourneyDetail(this.data, this.stops);
+}
+
 class JourneyStop {
   late DateTime? departureTime;
   late String platform;
@@ -202,15 +209,15 @@ class VasttrafikApi {
     return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
   }
 
-  Future<List<JourneyStop>> getJourneyStops(
-      String stopAreaId, String ref) async {
+  Future<JourneyDetail> getJourneyDetails(String stopAreaId, String ref) async {
     //String url2 = basePlaneraResaApi + '/stop-areas/$stopAreaId/departures/$ref/details';
     String url = basePlaneraResaApi + '/journeys/${ref}/details';
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
-    return List<JourneyStop>.from(
+    var list = List<JourneyStop>.from(
         map['tripLegs'][0]['callsOnTripLeg'].map((it) => JourneyStop(it)));
+    return JourneyDetail(map, list);
   }
 
   Future<List<Journey>> getDepartures(String stopId) async {

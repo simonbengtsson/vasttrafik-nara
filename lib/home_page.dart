@@ -26,7 +26,7 @@ class _MyHomePageState extends State<MyHomePage> {
   initState() {
     super.initState();
     fetchData().then((item) {
-      mixpanelInstance.track('Page Shown', properties: {
+      trackEvent('Page Shown', {
         'Page Name': 'Home',
         'Shown Stop Count': item.$1?.length ?? 0,
         'Uses Device Location': item.$2 != null ? 'Yes' : 'No',
@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
       var details = FlutterErrorDetails(exception: error, stack: stack);
       FlutterError.presentError(details);
       print('Error getting location. Details above');
-      mixpanelInstance.track('Error Triggered', properties: {
+      trackEvent('Error Triggered', {
         'Error Message': 'Could not get location',
         'Thrown Error': error.toString(),
         'Thrown Stack': stack.toString(),
@@ -83,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
     } catch (error, stack) {
       var details = FlutterErrorDetails(exception: error, stack: stack);
       FlutterError.presentError(details);
-      mixpanelInstance.track('Error Triggered', properties: {
+      trackEvent('Error Triggered', {
         'Error Message': 'Could not get stops',
         'Thrown Error': error.toString(),
         'Thrown Stack': stack.toString(),
@@ -170,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
       onSelected: (stop) {
         _controller.clear();
         FocusScope.of(context).unfocus();
-        mixpanelInstance.track('Stop Search Result Tapped', properties: {
+        trackEvent('Stop Search Result Tapped', {
           'Stop Name': stop.name,
           'Stop Id': stop.id,
           'Search Query': _controller.text

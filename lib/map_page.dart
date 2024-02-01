@@ -11,9 +11,9 @@ import 'package:vasttrafik_nara/vasttrafik.dart';
 
 class MapPage extends StatefulWidget {
   final Journey journey;
-  final List<JourneyStop> stops;
+  final JourneyDetail detail;
 
-  const MapPage({super.key, required this.journey, required this.stops});
+  const MapPage({super.key, required this.journey, required this.detail});
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -35,7 +35,7 @@ class _MapPageState extends State<MapPage> {
       });
       fetchData();
     });
-    mixpanelInstance.track('Page Shown', properties: {
+    trackEvent('Page Shown', {
       'Page Name': 'Map',
     });
   }
@@ -47,14 +47,14 @@ class _MapPageState extends State<MapPage> {
   }
 
   fetchData() async {
-    final lowerLeft = Coordinate(
-      widget.stops.map((e) => e.stop.lat).reduce((a, b) => a < b ? a : b),
-      widget.stops.map((e) => e.stop.lon).reduce((a, b) => a < b ? a : b),
-    );
-    final upperRight = Coordinate(
-      widget.stops.map((e) => e.stop.lat).reduce((a, b) => a > b ? a : b),
-      widget.stops.map((e) => e.stop.lon).reduce((a, b) => a > b ? a : b),
-    );
+    // final lowerLeft = Coordinate(
+    //   widget.stops.map((e) => e.stop.lat).reduce((a, b) => a < b ? a : b),
+    //   widget.stops.map((e) => e.stop.lon).reduce((a, b) => a < b ? a : b),
+    // );
+    // final upperRight = Coordinate(
+    //   widget.stops.map((e) => e.stop.lat).reduce((a, b) => a > b ? a : b),
+    //   widget.stops.map((e) => e.stop.lon).reduce((a, b) => a > b ? a : b),
+    // );
     if (Env.useAltCredentials) {
       final pos =
           await vasttrafikApi.vehiclePosition(widget.journey.journeyGid);
@@ -75,7 +75,7 @@ class _MapPageState extends State<MapPage> {
 
   Widget buildOpenStreetMap() {
     final coords =
-        widget.stops.map((e) => LatLng(e.stop.lat, e.stop.lon)).toList();
+        widget.detail.stops.map((e) => LatLng(e.stop.lat, e.stop.lon)).toList();
     final isRecent = this.vehiclePosition != null &&
         this
             .vehiclePosition!
@@ -110,7 +110,7 @@ class _MapPageState extends State<MapPage> {
                 height: isLastOrFirst ? 12 : 7,
                 width: isLastOrFirst ? 12 : 7,
                 child: Tooltip(
-                  message: widget.stops[it.key].stop.name,
+                  message: widget.detail.stops[it.key].stop.name,
                   child: Container(
                     decoration: BoxDecoration(
                       color: widget.journey.fgColor,

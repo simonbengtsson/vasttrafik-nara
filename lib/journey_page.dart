@@ -17,9 +17,8 @@ class JourneyPage extends StatefulWidget {
 
 class _JourneyPageState extends State<JourneyPage> {
   Journey journey;
-  List<JourneyStop> stops = [];
+  JourneyDetail? journeyDetail;
   ScrollController? _scrollController;
-
   bool loading = true;
 
   _JourneyPageState(this.journey);
@@ -28,7 +27,7 @@ class _JourneyPageState extends State<JourneyPage> {
   initState() {
     super.initState();
     fetchData().then((item) {
-      mixpanelInstance.track('Page Shown', properties: {
+      trackEvent('Page Shown', {
         'Page Name': 'Journey',
         'Journey Name': journey.name,
         'Journey Direction': journey.direction,
@@ -40,16 +39,17 @@ class _JourneyPageState extends State<JourneyPage> {
 
   Future<List<JourneyStop>> fetchData() async {
     var ref = this.journey.journeyRefId;
-    var stops = await vasttrafikApi.getJourneyStops(this.journey.stopId, ref);
+    var detail =
+        await vasttrafikApi.getJourneyDetails(this.journey.stopId, ref);
 
     if (this.mounted) {
       this.setState(() {
-        this.stops = stops;
+        this.journeyDetail = detail;
         this.loading = false;
       });
     }
 
-    return stops;
+    return journeyDetail!.stops;
   }
 
   hexColor(hexStr) {
@@ -63,9 +63,12 @@ class _JourneyPageState extends State<JourneyPage> {
     Color bgColor = this.journey.bgColor;
     var lum = bgColor.computeLuminance();
 
-    var stopIndex = this
-        .stops
-        .indexWhere((stop) => stop.stopPointId == this.journey.stopId);
+    final stops = this.journeyDetail?.stops ?? [];
+    var stopIndex =
+        stops.indexWhere((stop) => stop.stopPointId == this.journey.stopId);
+    if (stopIndex == -1) {
+      stopIndex = 0;
+    }
     this._scrollController =
         ScrollController(initialScrollOffset: stopIndex * 56.0);
 
@@ -76,13 +79,13 @@ class _JourneyPageState extends State<JourneyPage> {
           CupertinoActivityIndicator(animating: true, radius: 15.0)
         ])));
 
-    var listView = loading
+    var listView = loading || this.journeyDetail == null
         ? loader
         : ListView.builder(
-            itemCount: this.stops.length,
+            itemCount: stops.length,
             controller: this._scrollController,
             itemBuilder: (context, index) {
-              final stop = this.stops[index];
+              final stop = stops[index];
               var isActive = stop.stopPointId == this.journey.stopId;
               var time = '';
               var depTime = stop.departureTime;
@@ -133,8 +136,9 @@ class _JourneyPageState extends State<JourneyPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              MapPage(journey: widget.journey, stops: stops),
+                          builder: (context) => MapPage(
+                              journey: widget.journey,
+                              detail: this.journeyDetail!),
                         ),
                       );
                     },
