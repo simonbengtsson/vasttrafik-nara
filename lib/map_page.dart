@@ -4,9 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:vasttrafik_nara/common.dart';
+import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
 class MapPage extends StatefulWidget {
@@ -55,18 +55,22 @@ class _MapPageState extends State<MapPage> {
       widget.stops.map((e) => e.stop.lat).reduce((a, b) => a > b ? a : b),
       widget.stops.map((e) => e.stop.lon).reduce((a, b) => a > b ? a : b),
     );
-    final res = await vasttrafikApi.getVehicles(widget.journey.journeyRefId);
-    if (this.mounted) {
-      this.setState(() {
-        this.vehiclePosition = res;
-      });
+    if (Env.useAltCredentials) {
+      final pos =
+          await vasttrafikApi.vehiclePosition(widget.journey.journeyGid);
+      if (this.mounted) {
+        this.setState(() {
+          this.vehiclePosition = pos;
+        });
+      }
+    } else {
+      final res = await vasttrafikApi.getVehicles(widget.journey.journeyRefId);
+      if (this.mounted) {
+        this.setState(() {
+          this.vehiclePosition = res;
+        });
+      }
     }
-    // final pos = await vasttrafikApi.vehiclePosition(widget.journey.journeyGid);
-    // if (this.mounted) {
-    //   this.setState(() {
-    //     this.vehiclePosition = pos;
-    //   });
-    // }
   }
 
   Widget buildOpenStreetMap() {

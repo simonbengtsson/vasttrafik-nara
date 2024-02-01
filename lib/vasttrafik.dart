@@ -102,20 +102,20 @@ class LivePosition {
   late DateTime updatedAt;
 
   LivePosition(Map data) {
-    lat = data['latitude'];
-    lon = data['longitude'];
+    lat = data['latitude'] ?? data['lat'];
+    lon = data['longitude'] ?? data['long'];
     updatedAt = DateTime.now();
   }
 }
 
-class LivePositionInternal {
+class LivePositionInternal extends LivePosition {
   late bool atStop;
   late double lat;
   late double lon;
   late double speed;
   late DateTime updatedAt;
 
-  LivePositionInternal(Map data) {
+  LivePositionInternal(Map data) : super(data) {
     atStop = data['atStop'];
     lat = data['lat'];
     lon = data['long'];
@@ -146,6 +146,8 @@ class VasttrafikApi {
     return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
   }
 
+// Potentially more exact? Need verification but when tried on testflight the bus got ahead of actual position.
+// Does not seem to happen with the internal api
   Future<LivePositionInternal?> vehiclePosition(String journeyId) async {
     String path = "/positions/${journeyId}";
     String url = baseFposApi + path;
@@ -169,6 +171,9 @@ class VasttrafikApi {
   }
 
   Future<LivePosition?> getVehicles(String journeyRefId) async {
+    if (Env.useAltCredentials) {
+      return await vehiclePosition(journeyRefId);
+    }
     final highestValidLatitude = 90;
     final lowestValidLatitude = -90;
     final highestValidLongitude = 180;
@@ -176,7 +181,6 @@ class VasttrafikApi {
     String url =
         '$basePlaneraResaApi/positions?lowerLeftLat=${lowestValidLatitude}&lowerLeftLong=${lowestValidLongitude}&upperRightLat=${highestValidLatitude}&upperRightLong=${highestValidLongitude}&detailsReferences=${journeyRefId}&limit=1';
 
-//        '$basePlaneraResaApi/positions?lowerLeftLat=${lowerLeft.latitude}&lowerLeftLong=${lowerLeft.longitude}&upperRightLat=${upperRight.latitude}&upperRightLong=${upperRight.longitude}&detailsReferences=${}&limit=1';
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);

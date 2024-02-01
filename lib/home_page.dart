@@ -188,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.refresh),
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onBackground,
               tooltip: 'Refresh',
               onPressed: () {
                 _onRefresh();
