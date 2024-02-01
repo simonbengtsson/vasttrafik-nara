@@ -17,6 +17,10 @@ class Journey {
   late String stopId;
   late String journeyRefId;
 
+  bool get isCancelled {
+    return data['isCancelled'] ?? false;
+  }
+
   String get journeyGid {
     return data['serviceJourney']['gid'];
   }

@@ -67,6 +67,12 @@ class _StopPageState extends State<StopPage> {
     subtitleComponents.add(Text(
         formatDepartureTime(journey.estimatedTime, false),
         style: subTextStyle));
+
+    if (journey.isCancelled) {
+      subtitleComponents.add(Text('Cancelled',
+          style: subTextStyle.copyWith(
+              color: Colors.red, backgroundColor: Colors.white)));
+    }
     if (viaIndex > 0) {
       final via =
           directionName.substring(viaIndex, directionName.length).trim();
