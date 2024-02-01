@@ -10,7 +10,7 @@ class Journey {
   late String direction;
   String? track;
   late DateTime plannedTime;
-  late DateTime date;
+  late DateTime estimatedTime;
   late Color bgColor;
   late Color fgColor;
   late Stop nextStop;
@@ -35,7 +35,7 @@ class Journey {
     var planned = data['plannedTime'];
     var estimated = data['estimatedTime'] ?? planned;
     plannedTime = parseVasttrafikDate(planned);
-    date = parseVasttrafikDate(estimated);
+    estimatedTime = parseVasttrafikDate(estimated);
     bgColor = _hexColor(line['backgroundColor']);
     fgColor = _hexColor(line['foregroundColor']);
 

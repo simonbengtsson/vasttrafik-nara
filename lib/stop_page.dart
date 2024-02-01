@@ -33,7 +33,7 @@ class _StopPageState extends State<StopPage> {
     var stopId = this.widget.stop.id;
     var journeys = await vasttrafikApi.getDepartures(stopId);
     journeys.sort((a, b) {
-      return a.date.compareTo(b.date);
+      return a.estimatedTime.compareTo(b.estimatedTime);
     });
 
     if (mounted) {
@@ -45,22 +45,35 @@ class _StopPageState extends State<StopPage> {
   }
 
   Widget buildItem(Journey journey) {
-    List<String> subtitleComponents = [];
+    List<Widget> subtitleComponents = [];
     var directionName = journey.direction;
     final viaIndex = directionName.indexOf(' via ');
+    var textStyle = TextStyle(
+        color: journey.fgColor, fontSize: 18.0, fontWeight: FontWeight.bold);
+    final subTextStyle = TextStyle(color: textStyle.color);
     if (journey.track != null) {
-      subtitleComponents.add(journey.track!);
+      subtitleComponents.add(Text(journey.track!, style: subTextStyle));
     }
-    subtitleComponents.add(formatDepartureTime(journey.date, false));
+    final isDelayed =
+        !journey.estimatedTime.isAtSameMomentAs(journey.plannedTime);
+    if (isDelayed) {
+      subtitleComponents.add(Text(
+          formatDepartureTime(journey.plannedTime, false),
+          style: subTextStyle.copyWith(
+              decoration: TextDecoration.lineThrough,
+              decorationColor: subTextStyle.color!.withOpacity(0.8),
+              decorationThickness: 3)));
+    }
+    subtitleComponents.add(Text(
+        formatDepartureTime(journey.estimatedTime, false),
+        style: subTextStyle));
     if (viaIndex > 0) {
       final via =
           directionName.substring(viaIndex, directionName.length).trim();
-      subtitleComponents.add(via);
+      subtitleComponents.add(Text(via, style: subTextStyle));
       directionName = directionName.substring(0, viaIndex).trim();
     }
 
-    var textStyle = TextStyle(
-        color: journey.fgColor, fontSize: 18.0, fontWeight: FontWeight.bold);
     return Container(
         decoration: BoxDecoration(
           color: journey.bgColor,
@@ -78,10 +91,11 @@ class _StopPageState extends State<StopPage> {
           ),
           minLeadingWidth: 60,
           title: Text(directionName, style: textStyle),
-          subtitle: Text(subtitleComponents.join(' · '),
-              style: TextStyle(color: textStyle.color)),
-          trailing:
-              Text(formatDepartureTime(journey.date, true), style: textStyle),
+          subtitle: Wrap(spacing: 5, children: [
+            for (var it in subtitleComponents) it,
+          ]),
+          trailing: Text(formatDepartureTime(journey.estimatedTime, true),
+              style: textStyle),
         ));
   }
 
