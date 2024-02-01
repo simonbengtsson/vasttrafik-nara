@@ -74,15 +74,18 @@ class _MapPageState extends State<MapPage> {
   }
 
   Widget buildOpenStreetMap() {
-    final coords =
+    final stopCoords =
         widget.detail.stops.map((e) => LatLng(e.stop.lat, e.stop.lon)).toList();
+    final journeyCoords = widget.detail.coordinates
+        .map((e) => LatLng(e.latitude, e.longitude))
+        .toList();
     final isRecent = this.vehiclePosition != null &&
         this
             .vehiclePosition!
             .updatedAt
             .isAfter(DateTime.now().subtract(Duration(minutes: 2)));
     var initial = CameraFit.coordinates(
-        coordinates: coords,
+        coordinates: stopCoords,
         padding: EdgeInsets.only(top: 20, bottom: 50, left: 20, right: 20));
     return FlutterMap(
       mapController: mapController,
@@ -96,15 +99,16 @@ class _MapPageState extends State<MapPage> {
           polylines: [
             Polyline(
               strokeWidth: 7,
-              points: coords,
+              points: journeyCoords,
               color: widget.journey.bgColor,
             ),
           ],
         ),
         MarkerLayer(
           markers: [
-            ...coords.asMap().entries.map((it) {
-              final isLastOrFirst = it.key == coords.length - 1 || it.key == 0;
+            ...stopCoords.asMap().entries.map((it) {
+              final isLastOrFirst =
+                  it.key == stopCoords.length - 1 || it.key == 0;
               return Marker(
                 point: it.value,
                 height: isLastOrFirst ? 12 : 7,
