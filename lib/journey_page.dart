@@ -92,8 +92,11 @@ class _JourneyPageState extends State<JourneyPage> {
               var style = TextStyle(
                 fontSize: 18.0,
                 color: isActive
-                    ? Colors.black
-                    : Colors.black.withOpacity(index < stopIndex ? 0.3 : 0.8),
+                    ? Theme.of(context).colorScheme.onBackground
+                    : Theme.of(context)
+                        .colorScheme
+                        .onBackground
+                        .withOpacity(index < stopIndex ? 0.3 : 0.8),
                 fontWeight: isActive ? FontWeight.w900 : FontWeight.w500,
               );
 

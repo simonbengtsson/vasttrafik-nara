@@ -184,18 +184,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
         appBar: AppBar(
-            title: SizedBox(height: 50, child: typeAhead),
-            actions: <Widget>[
-              IconButton(
-                icon: Icon(Icons.refresh),
-                color: Colors.black,
-                tooltip: 'Refresh',
-                onPressed: () {
-                  _onRefresh();
-                },
-              ),
-            ],
-            backgroundColor: Colors.white),
+          title: SizedBox(height: 50, child: typeAhead),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.refresh),
+              color: Colors.black,
+              tooltip: 'Refresh',
+              onPressed: () {
+                _onRefresh();
+              },
+            ),
+          ],
+        ),
         body: mainCmp);
   }
 
