@@ -44,40 +44,44 @@ class _StopPageState extends State<StopPage> {
     return journeys;
   }
 
-  Widget buildItem(Journey departure) {
-    var subtitle = departure.track == null ? '' : departure.track!;
-    var direction = departure.direction;
-    final viaIndex = direction.indexOf(' via ');
+  Widget buildItem(Journey journey) {
+    List<String> subtitleComponents = [];
+    var directionName = journey.direction;
+    final viaIndex = directionName.indexOf(' via ');
+    if (journey.track != null) {
+      subtitleComponents.add(journey.track!);
+    }
+    subtitleComponents.add(formatDepartureTime(journey.date, false));
     if (viaIndex > 0) {
-      var via = direction.substring(viaIndex, direction.length).trim();
-      subtitle = [subtitle, via].join(' • ');
-      direction = direction.substring(0, viaIndex).trim();
+      final via =
+          directionName.substring(viaIndex, directionName.length).trim();
+      subtitleComponents.add(via);
+      directionName = directionName.substring(0, viaIndex).trim();
     }
 
     var textStyle = TextStyle(
-        color: departure.fgColor, fontSize: 18.0, fontWeight: FontWeight.bold);
+        color: journey.fgColor, fontSize: 18.0, fontWeight: FontWeight.bold);
     return Container(
         decoration: BoxDecoration(
-          color: departure.bgColor,
+          color: journey.bgColor,
         ),
         child: ListTile(
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => JourneyPage(departure)),
+              MaterialPageRoute(builder: (context) => JourneyPage(journey)),
             );
           },
           leading: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [Text(departure.shortName, style: textStyle)],
+            children: [Text(journey.shortName, style: textStyle)],
           ),
           minLeadingWidth: 60,
-          title: Text(direction, style: textStyle),
-          subtitle: subtitle.isEmpty
-              ? null
-              : Text(subtitle, style: TextStyle(color: departure.bgColor)),
+          title: Text(directionName, style: textStyle),
+          subtitle: Text(subtitleComponents.join(' · '),
+              style: TextStyle(color: textStyle.color)),
           trailing:
-              Text(formatDepartureTime(departure.date, true), style: textStyle),
+              Text(formatDepartureTime(journey.date, true), style: textStyle),
         ));
   }
 

@@ -60,8 +60,8 @@ class _JourneyPageState extends State<JourneyPage> {
 
   @override
   Widget build(BuildContext context) {
-    Color fgColor = this.journey.fgColor;
-    var lum = fgColor.computeLuminance();
+    Color bgColor = this.journey.bgColor;
+    var lum = bgColor.computeLuminance();
 
     var stopIndex = this
         .stops
@@ -115,11 +115,11 @@ class _JourneyPageState extends State<JourneyPage> {
 
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: fgColor,
+          backgroundColor: bgColor,
           systemOverlayStyle: lum < 0.7
               ? SystemUiOverlayStyle.light
               : SystemUiOverlayStyle.dark,
-          iconTheme: IconThemeData(color: this.journey.bgColor),
+          iconTheme: IconThemeData(color: this.journey.fgColor),
           actions: [
             IconButton(
               icon: const Icon(Icons.map),
@@ -138,7 +138,7 @@ class _JourneyPageState extends State<JourneyPage> {
             ),
           ],
           title: Text(this.journey.shortName + ' ' + this.journey.direction,
-              style: TextStyle(color: this.journey.bgColor)),
+              style: TextStyle(color: this.journey.fgColor)),
         ),
         body: listView);
   }

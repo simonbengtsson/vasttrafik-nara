@@ -1,7 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:vasttrafik_nara/common.dart';
@@ -186,7 +185,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
         appBar: AppBar(
             title: SizedBox(height: 50, child: typeAhead),
-            systemOverlayStyle: SystemUiOverlayStyle.light,
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.refresh),
