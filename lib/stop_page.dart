@@ -16,7 +16,7 @@ class StopPage extends StatefulWidget {
 }
 
 class _StopPageState extends State<StopPage> {
-  Information? information;
+  List<Information> informationItems = [];
   List<Deparature> journeys = [];
 
   @override
@@ -38,7 +38,7 @@ class _StopPageState extends State<StopPage> {
     var info = await vasttrafikApi.getStopInformation(stopId);
     if (mounted) {
       this.setState(() {
-        this.information = info;
+        this.informationItems = info;
       });
     }
   }
@@ -134,16 +134,16 @@ class _StopPageState extends State<StopPage> {
       appBar: AppBar(
         title: Text(this.widget.stop.name),
         actions: [
-          if (information != null)
+          if (informationItems.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.map),
+              icon: const Icon(Icons.info_rounded),
               tooltip: 'Info',
               onPressed: () async {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => InformationPage(
-                      information: information!,
+                      informations: informationItems,
                     ),
                   ),
                 );

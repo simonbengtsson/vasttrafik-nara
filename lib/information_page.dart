@@ -3,9 +3,9 @@ import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/models.dart';
 
 class InformationPage extends StatefulWidget {
-  final Information information;
+  final List<Information> informations;
 
-  const InformationPage({super.key, required this.information});
+  const InformationPage({super.key, required this.informations});
 
   @override
   State<InformationPage> createState() => _InformationPageState();
@@ -27,7 +27,14 @@ class _InformationPageState extends State<InformationPage> {
         title: Text('Information'),
         actions: [],
       ),
-      body: Text('Information'),
+      body: ListView(
+        children: widget.informations.map((it) {
+          return ListTile(
+            title: Text(it.title),
+            subtitle: Text(it.description),
+          );
+        }).toList(),
+      ),
     );
   }
 }

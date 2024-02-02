@@ -12,6 +12,7 @@ class VasttrafikApi {
   String basePlaneraResaApi =
       "https://ext-api.vasttrafik.se/pr/v4${Env.useAltCredentials ? '-int' : ''}";
   String baseGeoApi = "https://ext-api.vasttrafik.se/geo/v2";
+  String baseInformationApi = "https://ext-api.vasttrafik.se/ts/v1";
   String baseFposApi =
       "https://ext-api.vasttrafik.se/fpos/v1"; // Only supported with alt credentials
 
@@ -154,7 +155,21 @@ class VasttrafikApi {
     }
   }
 
-  Future<Information> getStopInformation(String stopId) async {
-    return Information({});
+  Future<List<Information>> getStopInformation(String stopId) async {
+    var path = '/traffic-situations/stoparea/${stopId}';
+    //path = '/traffic-situations';
+    var url = baseInformationApi + path;
+    var res = await _callApi(url, true);
+    var json = jsonDecode(res.body);
+    return List<Information>.from(json.map((it) => Information(it)));
+  }
+
+  Future<List<Information>> getJourneyInformation(String lineId) async {
+    var path = '/traffic-situations/line/${lineId}';
+    //path = '/traffic-situations';
+    var url = baseInformationApi + path;
+    var res = await _callApi(url, true);
+    var json = jsonDecode(res.body);
+    return List<Information>.from(json.map((it) => Information(it)));
   }
 }

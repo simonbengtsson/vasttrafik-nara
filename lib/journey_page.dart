@@ -1,4 +1,5 @@
 import 'package:vasttrafik_nara/common.dart';
+import 'package:vasttrafik_nara/information_page.dart';
 import 'package:vasttrafik_nara/map_page.dart';
 import 'package:vasttrafik_nara/models.dart';
 import 'package:vasttrafik_nara/stop_page.dart';
@@ -16,6 +17,7 @@ class JourneyPage extends StatefulWidget {
 }
 
 class _JourneyPageState extends State<JourneyPage> {
+  List<Information> informationItems = [];
   JourneyDetail? journeyDetail;
   ScrollController? _scrollController;
   bool loading = true;
@@ -25,6 +27,9 @@ class _JourneyPageState extends State<JourneyPage> {
   @override
   initState() {
     super.initState();
+    fetchInformationItems().catchError((error) {
+      print('Error fetching information: $error');
+    });
     fetchData().then((item) {
       trackEvent('Page Shown', {
         'Page Name': 'Journey',
@@ -33,7 +38,19 @@ class _JourneyPageState extends State<JourneyPage> {
         'Journey Id': widget.journey.journeyRefId,
         'Shown Stop Count': item.length
       });
+    }).catchError((error) {
+      print('Error fetching data $error');
     });
+  }
+
+  fetchInformationItems() async {
+    final info =
+        await vasttrafikApi.getJourneyInformation(widget.journey.lineId);
+    if (this.mounted) {
+      this.setState(() {
+        this.informationItems = info;
+      });
+    }
   }
 
   Future<List<JourneyStop>> fetchData() async {
@@ -127,6 +144,21 @@ class _JourneyPageState extends State<JourneyPage> {
           iconTheme:
               IconThemeData(color: convertHexToColor(widget.journey.fgColor)),
           actions: [
+            if (informationItems.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.info_rounded),
+                tooltip: 'Info',
+                onPressed: () async {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InformationPage(
+                        informations: informationItems,
+                      ),
+                    ),
+                  );
+                },
+              ),
             IconButton(
               icon: const Icon(Icons.map),
               tooltip: 'Map',

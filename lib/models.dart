@@ -1,6 +1,36 @@
 class Information {
   late Map data;
 
+  String get situationNumber {
+    return data['situationNumber'];
+  }
+
+  DateTime get startTime {
+    return parseVasttrafikDate(data['startTime']);
+  }
+
+  DateTime get endTime {
+    return parseVasttrafikDate(data['endTime']);
+  }
+
+  String get title {
+    return data['title'];
+  }
+
+  String get description {
+    String message = data['description'];
+    if (message
+        .startsWith('Sök din resa i appen To Go eller Reseplaneraren. ')) {
+      message = message.replaceAll(
+          'Sök din resa i appen To Go eller Reseplaneraren. ', '');
+    }
+    return message;
+  }
+
+  String get severity {
+    return data['severity'];
+  }
+
   Information(Map data) {
     this.data = data;
   }
@@ -19,6 +49,10 @@ class Deparature {
   late Stop nextStop;
   late String stopId;
   late String journeyRefId;
+
+  String get lineId {
+    return data['serviceJourney']['line']['gid'];
+  }
 
   bool get isCancelled {
     return data['isCancelled'] ?? false;
