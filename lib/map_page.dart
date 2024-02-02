@@ -126,6 +126,31 @@ class _MapPageState extends State<MapPage> {
             }),
           ],
         ),
+        CurrentLocationLayer(),
+        if (this.vehiclePosition != null)
+          AnimatedLocationMarkerLayer(
+              style: LocationMarkerStyle(
+                markerSize: Size(30, 30),
+                marker: Container(
+                  decoration: BoxDecoration(
+                    color: widget.journey.bgColor,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: isRecent
+                      ? Icon(
+                          Icons.train,
+                          color: widget.journey.fgColor,
+                        )
+                      : CupertinoActivityIndicator(
+                          color: widget.journey.fgColor,
+                        ),
+                ),
+              ),
+              position: LocationMarkerPosition(
+                latitude: vehiclePosition!.lat,
+                longitude: vehiclePosition!.lon,
+                accuracy: 0,
+              )),
         SafeArea(
           child: Stack(
             children: [
@@ -165,31 +190,6 @@ class _MapPageState extends State<MapPage> {
             ],
           ),
         ),
-        CurrentLocationLayer(),
-        if (this.vehiclePosition != null)
-          AnimatedLocationMarkerLayer(
-              style: LocationMarkerStyle(
-                markerSize: Size(30, 30),
-                marker: Container(
-                  decoration: BoxDecoration(
-                    color: widget.journey.bgColor,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: isRecent
-                      ? Icon(
-                          Icons.train,
-                          color: widget.journey.fgColor,
-                        )
-                      : CupertinoActivityIndicator(
-                          color: widget.journey.fgColor,
-                        ),
-                ),
-              ),
-              position: LocationMarkerPosition(
-                latitude: vehiclePosition!.lat,
-                longitude: vehiclePosition!.lon,
-                accuracy: 0,
-              )),
       ],
     );
   }

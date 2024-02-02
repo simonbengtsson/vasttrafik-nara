@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/journey_page.dart';
+import 'package:vasttrafik_nara/stop_map_page.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
 class StopPage extends StatefulWidget {
@@ -117,7 +118,22 @@ class _StopPageState extends State<StopPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(this.widget.stop.name),
-        actions: [],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.map),
+            tooltip: 'Map',
+            onPressed: () async {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => StopMapPage(
+                    stop: widget.stop,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: this.journeys.length == 0
           ? loader

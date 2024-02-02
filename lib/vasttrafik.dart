@@ -57,6 +57,7 @@ _hexColor(hexStr) {
 }
 
 class Stop {
+  late Map data;
   late String id;
   late double lat;
   late double lon;
@@ -70,6 +71,7 @@ class Stop {
     id = data['gid'];
     lat = data['latitude'];
     lon = data['longitude'] ?? 0;
+    this.data = data;
   }
 }
 
@@ -104,6 +106,41 @@ class JourneyStop {
   }
 }
 
+class StopPoint {
+  late Map data;
+  late String id;
+  late double lat;
+  late double lon;
+  late String name;
+
+  StopPoint(Map data) {
+    name = data['designation'];
+    id = data['gid'];
+    lat = data['geometry']['northingCoordinate'];
+    lon = data['geometry']['eastingCoordinate'];
+    this.data = data;
+  }
+}
+
+class StopAreaDetail {
+  late Map data;
+  late String name;
+  late String id;
+  late double lat;
+  late double lon;
+  late List<StopPoint> stopPoints;
+
+  StopAreaDetail(Map data) {
+    name = data['name'];
+    id = data['gid'];
+    lat = data['geometry']['northingCoordinate'];
+    lon = data['geometry']['eastingCoordinate'];
+    stopPoints =
+        List<StopPoint>.from(data['stopPoints'].map((it) => StopPoint(it)));
+    this.data = data;
+  }
+}
+
 parseVasttrafikDate(String dateStr) {
   return DateTime.parse(dateStr).toLocal();
 }
@@ -115,15 +152,49 @@ class Coordinate {
   Coordinate(this.latitude, this.longitude);
 }
 
+class Line {
+  late Map data;
+  late String name;
+  late String bgColor;
+  late String fgColor;
+  late String transportMode;
+
+  Line(Map data) {
+    name = data['name'];
+    bgColor = data['line']['backgroundColor'];
+    fgColor = data['line']['foregroundColor'];
+    transportMode = data['transportMode'];
+    this.data = data;
+  }
+}
+
 class LivePosition {
+  late Map data;
   late double lat;
   late double lon;
   late DateTime updatedAt;
+
+  String get detailsReference {
+    return data['detailsReference'];
+  }
+
+  Color get bgColor {
+    return _hexColor(data['line']['backgroundColor']);
+  }
+
+  Color get fbColor {
+    return _hexColor(data['line']['foregroundColor']);
+  }
+
+  String get lineName {
+    return data['line']?['name'] ?? '-';
+  }
 
   LivePosition(Map data) {
     lat = data['latitude'] ?? data['lat'];
     lon = data['longitude'] ?? data['long'];
     updatedAt = DateTime.now();
+    this.data = data;
   }
 }
 
@@ -145,11 +216,13 @@ class LivePositionInternal extends LivePosition {
 
 class VasttrafikApi {
   String? authToken;
+  String? authTokenAlt;
   String clientId;
   String clientSecret;
 
   String basePlaneraResaApi =
       "https://ext-api.vasttrafik.se/pr/v4${Env.useAltCredentials ? '-int' : ''}";
+  String baseGeoApi = "https://ext-api.vasttrafik.se/geo/v2";
   String baseFposApi =
       "https://ext-api.vasttrafik.se/fpos/v1"; // Only supported with alt credentials
 
@@ -163,6 +236,16 @@ class VasttrafikApi {
     var json = res.body;
     var map = jsonDecode(json);
     return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
+  }
+
+  Future<StopAreaDetail> stopAreaDetail(String stopAreaId) async {
+    String path =
+        "/StopAreas/$stopAreaId?includeStopPoints=true&includeGeometry=true&srid=4326";
+    String url = baseGeoApi + path;
+    var res = await _callApi(url, true);
+    var json = res.body;
+    var map = jsonDecode(json);
+    return StopAreaDetail(map['stopArea']);
   }
 
 // Potentially more exact? Need verification but when tried on testflight the bus got ahead of actual position.
@@ -179,14 +262,15 @@ class VasttrafikApi {
     return LivePositionInternal(map);
   }
 
-  Future getAllVehicles(Coordinate lowerLeft, Coordinate upperRight) async {
+  Future<List<LivePosition>> getAllVehicles(
+      Coordinate lowerLeft, Coordinate upperRight) async {
     String url =
         '$basePlaneraResaApi/positions?lowerLeftLat=${lowerLeft.latitude}&lowerLeftLong=${lowerLeft.longitude}&upperRightLat=${upperRight.latitude}&upperRightLong=${upperRight.longitude}&limit=200';
 
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
-    return LivePosition(map[0]);
+    return List<LivePosition>.from(map.map((it) => LivePosition(it)));
   }
 
   Future<LivePosition?> getVehicles(String journeyRefId) async {
@@ -252,12 +336,19 @@ class VasttrafikApi {
     return List<Journey>.from(map['results'].map((it) => Journey(it)));
   }
 
-  _callApi(String url) async {
+  _callApi(String url, [bool forceNormal = false]) async {
     Uri uri = Uri.parse(url);
-    return http.get(uri, headers: {'Authorization': "Bearer ${authToken!}"});
+    var token = Env.useAltCredentials ? authTokenAlt : authToken;
+    if (forceNormal) {
+      token = authToken;
+    }
+    return http.get(uri, headers: {'Authorization': "Bearer ${token!}"});
   }
 
-  authorize() async {
+  Future authorize(bool alt) async {
+    var clientId = alt ? Env.vasttrafikClientIdAlt : Env.vasttrafikClientId;
+    var clientSecret =
+        alt ? Env.vasttrafikClientSecretAlt : Env.vasttrafikClientSecret;
     Uri uri = Uri.parse('https://ext-api.vasttrafik.se/token');
     var res = await http.post(
       uri,
@@ -267,6 +358,10 @@ class VasttrafikApi {
     );
 
     var json = jsonDecode(res.body);
-    authToken = json['access_token'];
+    if (alt) {
+      authTokenAlt = json['access_token'];
+    } else {
+      authToken = json['access_token'];
+    }
   }
 }

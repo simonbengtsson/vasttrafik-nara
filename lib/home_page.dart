@@ -38,7 +38,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<(List<Stop>?, Position?, double?)> fetchData() async {
     Future? authPromise;
     if (vasttrafikApi.authToken == null) {
-      authPromise = vasttrafikApi.authorize();
+      authPromise = Future.wait(
+          [vasttrafikApi.authorize(true), vasttrafikApi.authorize(false)]);
     }
     double? distanceAway;
     try {
