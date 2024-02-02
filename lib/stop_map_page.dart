@@ -79,7 +79,7 @@ class _MapPageState extends State<StopMapPage> {
       mapController: mapController,
       options: MapOptions(
           initialCenter:
-              LatLng(gothenburgLocation.latitude, gothenburgLocation.longitude),
+              LatLng(defaultLocation.latitude, defaultLocation.longitude),
           initialZoom: 13),
       children: [
         TileLayer(

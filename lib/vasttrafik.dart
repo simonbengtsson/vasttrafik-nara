@@ -84,7 +84,7 @@ class VasttrafikApi {
   Future<List<StopArea>> getNearby(Coordinate latLng) async {
     String path = "/locations/by-coordinates";
     String queryString =
-        "?latitude=${latLng.latitude}&longitude=${latLng.longitude}&limit=500&types=stoparea";
+        "?latitude=${latLng.latitude}&longitude=${latLng.longitude}&radiusInMeters=50000&limit=20&types=stoparea";
     String url = basePlaneraResaApi + path + queryString;
     var res = await _callApi(url);
     var json = res.body;

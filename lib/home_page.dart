@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,6 +9,8 @@ import 'package:vasttrafik_nara/models.dart';
 import 'package:vasttrafik_nara/stop_page.dart';
 
 var gothenburgLocation = Coordinate(57.7068421, 11.9704796);
+var lindholmenLocation = Coordinate(57.7063737, 11.9401539);
+var defaultLocation = gothenburgLocation;
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key}) : super(key: key);
@@ -48,8 +51,8 @@ class _MyHomePageState extends State<MyHomePage> {
       distanceAway = Geolocator.distanceBetween(
           position.latitude,
           position.longitude,
-          gothenburgLocation.latitude,
-          gothenburgLocation.longitude);
+          defaultLocation.latitude,
+          defaultLocation.longitude);
       if (distanceAway < 200 * 1000) {
         this.currentLocation = position;
       } else {
@@ -69,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
     List<StopArea>? stops;
     try {
       var currentLocation = this.currentLocation == null
-          ? gothenburgLocation
+          ? defaultLocation
           : Coordinate(
               this.currentLocation!.latitude, this.currentLocation!.longitude);
       if (authPromise != null) {
@@ -234,35 +237,39 @@ class StopHeadingItem {
 
   Widget build() {
     var name = stop.name;
-    var offset = this.currentLocation == null
+    var offset = currentLocation == null && !kDebugMode
         ? null
-        : Geolocator.distanceBetween(stop.lat, stop.lon,
-            this.currentLocation!.latitude, this.currentLocation!.longitude);
+        : Geolocator.distanceBetween(
+            stop.lat,
+            stop.lon,
+            this.currentLocation?.latitude ?? defaultLocation.latitude,
+            this.currentLocation?.longitude ?? defaultLocation.longitude);
 
     return ListTile(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => StopPage(stop: this.stop)),
-          );
-        },
-        title: Padding(
-            padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 0.0),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Flexible(
-                      child: AutoSizeText(name,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          minFontSize: 16.0,
-                          style: Theme.of(context).textTheme.titleLarge!)),
-                  Text(offset != null ? "${offset.round()} m" : '',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge!
-                          .copyWith(color: Colors.grey))
-                ])));
+      onTap: () {
+        FocusScope.of(context).unfocus();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => StopPage(stop: this.stop)),
+        );
+      },
+      trailing: Text(offset != null ? "${offset.round()} m" : ''),
+      title: Padding(
+        padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 0.0),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Flexible(
+                child: AutoSizeText(
+                  name,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  minFontSize: 16.0,
+                  style: Theme.of(context).textTheme.titleLarge!,
+                ),
+              ),
+            ]),
+      ),
+    );
   }
 }
