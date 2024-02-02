@@ -119,3 +119,9 @@ String formatDepartureTime(DateTime date, bool relative) {
   String formattedDate = DateFormat('HH:mm').format(date);
   return formattedDate;
 }
+
+Color convertHexToColor(String hexStr) {
+  var hex = 'FF' + hexStr.substring(1);
+  var numColor = int.parse(hex, radix: 16);
+  return Color(numColor);
+}

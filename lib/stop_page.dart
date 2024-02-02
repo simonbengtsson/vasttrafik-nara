@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vasttrafik_nara/common.dart';
+import 'package:vasttrafik_nara/information_page.dart';
 import 'package:vasttrafik_nara/journey_page.dart';
+import 'package:vasttrafik_nara/models.dart';
 import 'package:vasttrafik_nara/stop_map_page.dart';
-import 'package:vasttrafik_nara/vasttrafik.dart';
 
 class StopPage extends StatefulWidget {
   StopPage({Key? key, required this.stop}) : super(key: key);
@@ -15,11 +16,13 @@ class StopPage extends StatefulWidget {
 }
 
 class _StopPageState extends State<StopPage> {
+  Information? information;
   List<Deparature> journeys = [];
 
   @override
   initState() {
     super.initState();
+    fetchInformation();
     fetchData().then((list) {
       trackEvent('Page Shown', {
         'Page Name': 'Stop',
@@ -28,6 +31,16 @@ class _StopPageState extends State<StopPage> {
         'Shown Journey Count': list.length,
       });
     });
+  }
+
+  Future<void> fetchInformation() async {
+    var stopId = this.widget.stop.id;
+    var info = await vasttrafikApi.getStopInformation(stopId);
+    if (mounted) {
+      this.setState(() {
+        this.information = info;
+      });
+    }
   }
 
   Future<List<Deparature>> fetchData() async {
@@ -50,7 +63,9 @@ class _StopPageState extends State<StopPage> {
     var directionName = journey.direction;
     final viaIndex = directionName.indexOf(' via ');
     var textStyle = TextStyle(
-        color: journey.fgColor, fontSize: 18.0, fontWeight: FontWeight.bold);
+        color: convertHexToColor(journey.fgColor),
+        fontSize: 18.0,
+        fontWeight: FontWeight.bold);
     final subTextStyle = TextStyle(color: textStyle.color);
     if (journey.track != null) {
       subtitleComponents.add(Text(journey.track!, style: subTextStyle));
@@ -83,7 +98,7 @@ class _StopPageState extends State<StopPage> {
 
     return Container(
         decoration: BoxDecoration(
-          color: journey.bgColor,
+          color: convertHexToColor(journey.bgColor),
         ),
         child: ListTile(
           onTap: () {
@@ -119,6 +134,21 @@ class _StopPageState extends State<StopPage> {
       appBar: AppBar(
         title: Text(this.widget.stop.name),
         actions: [
+          if (information != null)
+            IconButton(
+              icon: const Icon(Icons.map),
+              tooltip: 'Info',
+              onPressed: () async {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => InformationPage(
+                      information: information!,
+                    ),
+                  ),
+                );
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.map),
             tooltip: 'Map',

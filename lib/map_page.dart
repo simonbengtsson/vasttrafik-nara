@@ -7,7 +7,7 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/env.dart';
-import 'package:vasttrafik_nara/vasttrafik.dart';
+import 'package:vasttrafik_nara/models.dart';
 
 class MapPage extends StatefulWidget {
   final Deparature journey;
@@ -100,7 +100,7 @@ class _MapPageState extends State<MapPage> {
             Polyline(
               strokeWidth: 7,
               points: journeyCoords,
-              color: widget.journey.bgColor,
+              color: convertHexToColor(widget.journey.bgColor),
             ),
           ],
         ),
@@ -117,7 +117,7 @@ class _MapPageState extends State<MapPage> {
                   message: widget.detail.stops[it.key].stop.name,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: widget.journey.fgColor,
+                      color: convertHexToColor(widget.journey.fgColor),
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -133,16 +133,16 @@ class _MapPageState extends State<MapPage> {
                 markerSize: Size(30, 30),
                 marker: Container(
                   decoration: BoxDecoration(
-                    color: widget.journey.bgColor,
+                    color: convertHexToColor(widget.journey.bgColor),
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: isRecent
                       ? Icon(
                           Icons.train,
-                          color: widget.journey.fgColor,
+                          color: convertHexToColor(widget.journey.fgColor),
                         )
                       : CupertinoActivityIndicator(
-                          color: widget.journey.fgColor,
+                          color: convertHexToColor(widget.journey.fgColor),
                         ),
                 ),
               ),

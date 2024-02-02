@@ -7,7 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/home_page.dart';
 import 'package:vasttrafik_nara/journey_page.dart';
-import 'package:vasttrafik_nara/vasttrafik.dart';
+import 'package:vasttrafik_nara/models.dart';
 
 class StopMapPage extends StatefulWidget {
   final Stop stop;
@@ -148,12 +148,14 @@ class _MapPageState extends State<StopMapPage> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: vehiclePosition.bgColor,
+                    color: convertHexToColor(vehiclePosition.bgColor),
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: Center(
                       child: Text(vehiclePosition.lineName,
-                          style: TextStyle(color: vehiclePosition.fbColor))),
+                          style: TextStyle(
+                              color:
+                                  convertHexToColor(vehiclePosition.fbColor)))),
                 ),
               ),
             ),

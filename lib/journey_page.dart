@@ -1,7 +1,7 @@
 import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/map_page.dart';
+import 'package:vasttrafik_nara/models.dart';
 import 'package:vasttrafik_nara/stop_page.dart';
-import 'package:vasttrafik_nara/vasttrafik.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -59,7 +59,7 @@ class _JourneyPageState extends State<JourneyPage> {
 
   @override
   Widget build(BuildContext context) {
-    Color bgColor = widget.journey.bgColor;
+    Color bgColor = convertHexToColor(widget.journey.bgColor);
     var lum = bgColor.computeLuminance();
 
     final stops = this.journeyDetail?.stops ?? [];
@@ -124,7 +124,8 @@ class _JourneyPageState extends State<JourneyPage> {
           systemOverlayStyle: lum < 0.7
               ? SystemUiOverlayStyle.light
               : SystemUiOverlayStyle.dark,
-          iconTheme: IconThemeData(color: widget.journey.fgColor),
+          iconTheme:
+              IconThemeData(color: convertHexToColor(widget.journey.fgColor)),
           actions: [
             IconButton(
               icon: const Icon(Icons.map),
@@ -144,7 +145,8 @@ class _JourneyPageState extends State<JourneyPage> {
             ),
           ],
           title: Text(widget.journey.shortName + ' ' + widget.journey.direction,
-              style: TextStyle(color: widget.journey.fgColor)),
+              style:
+                  TextStyle(color: convertHexToColor(widget.journey.fgColor))),
         ),
         body: listView);
   }
