@@ -267,7 +267,7 @@ class LivePosition {
   }
 
   String get lineDirection {
-    return data['line']['direction'];
+    return data['direction'];
   }
 }
 
