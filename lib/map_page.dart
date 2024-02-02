@@ -10,7 +10,7 @@ import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
 class MapPage extends StatefulWidget {
-  final Journey journey;
+  final Deparature journey;
   final JourneyDetail detail;
 
   const MapPage({super.key, required this.journey, required this.detail});

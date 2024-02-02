@@ -6,6 +6,7 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/home_page.dart';
+import 'package:vasttrafik_nara/journey_page.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
 class StopMapPage extends StatefulWidget {
@@ -114,8 +115,37 @@ class _MapPageState extends State<StopMapPage> {
             key: ValueKey(vehiclePosition.detailsReference),
             style: LocationMarkerStyle(
               markerSize: Size(30, 30),
-              marker: Tooltip(
-                message: vehiclePosition.lineName,
+              marker: InkWell(
+                onTap: () async {
+                  var journey = await vasttrafikApi.getJourneyDetails(
+                      '', vehiclePosition.detailsReference);
+                  var stops = journey.stops
+                      .where((it) =>
+                          it.departureTime != null &&
+                          it.departureTime!.isAfter(DateTime.now()))
+                      .toList();
+                  stops.sort(
+                      (a, b) => a.departureTime!.compareTo(b.departureTime!));
+                  var nextStopId = stops.first.stop.id;
+                  var departures =
+                      await vasttrafikApi.getDepartures(nextStopId);
+                  var depart = departures
+                      .where((it) =>
+                          it.journeyRefId == vehiclePosition.detailsReference)
+                      .toList()
+                      .firstOrNull;
+                  if (depart == null) {
+                    print('Why sometimes null here? Last stop?');
+                    return;
+                  }
+                  // Find next stop point and its area
+                  // Fetch departures and find for this line
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => JourneyPage(depart)),
+                  );
+                },
                 child: Container(
                   decoration: BoxDecoration(
                     color: vehiclePosition.bgColor,

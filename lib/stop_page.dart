@@ -15,7 +15,7 @@ class StopPage extends StatefulWidget {
 }
 
 class _StopPageState extends State<StopPage> {
-  List<Journey> journeys = [];
+  List<Deparature> journeys = [];
 
   @override
   initState() {
@@ -30,7 +30,7 @@ class _StopPageState extends State<StopPage> {
     });
   }
 
-  Future<List<Journey>> fetchData() async {
+  Future<List<Deparature>> fetchData() async {
     var stopId = this.widget.stop.id;
     var journeys = await vasttrafikApi.getDepartures(stopId);
     journeys.sort((a, b) {
@@ -45,7 +45,7 @@ class _StopPageState extends State<StopPage> {
     return journeys;
   }
 
-  Widget buildItem(Journey journey) {
+  Widget buildItem(Deparature journey) {
     List<Widget> subtitleComponents = [];
     var directionName = journey.direction;
     final viaIndex = directionName.indexOf(' via ');

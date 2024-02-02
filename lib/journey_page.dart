@@ -7,21 +7,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class JourneyPage extends StatefulWidget {
-  final Journey journey;
+  final Deparature journey;
 
   JourneyPage(this.journey);
 
   @override
-  createState() => _JourneyPageState(this.journey);
+  createState() => _JourneyPageState();
 }
 
 class _JourneyPageState extends State<JourneyPage> {
-  Journey journey;
   JourneyDetail? journeyDetail;
   ScrollController? _scrollController;
   bool loading = true;
 
-  _JourneyPageState(this.journey);
+  _JourneyPageState();
 
   @override
   initState() {
@@ -29,18 +28,18 @@ class _JourneyPageState extends State<JourneyPage> {
     fetchData().then((item) {
       trackEvent('Page Shown', {
         'Page Name': 'Journey',
-        'Journey Name': journey.name,
-        'Journey Direction': journey.direction,
-        'Journey Id': journey.journeyRefId,
+        'Journey Name': widget.journey.name,
+        'Journey Direction': widget.journey.direction,
+        'Journey Id': widget.journey.journeyRefId,
         'Shown Stop Count': item.length
       });
     });
   }
 
   Future<List<JourneyStop>> fetchData() async {
-    var ref = this.journey.journeyRefId;
+    var ref = widget.journey.journeyRefId;
     var detail =
-        await vasttrafikApi.getJourneyDetails(this.journey.stopId, ref);
+        await vasttrafikApi.getJourneyDetails(widget.journey.stopId, ref);
 
     if (this.mounted) {
       this.setState(() {
@@ -60,12 +59,12 @@ class _JourneyPageState extends State<JourneyPage> {
 
   @override
   Widget build(BuildContext context) {
-    Color bgColor = this.journey.bgColor;
+    Color bgColor = widget.journey.bgColor;
     var lum = bgColor.computeLuminance();
 
     final stops = this.journeyDetail?.stops ?? [];
     var stopIndex =
-        stops.indexWhere((stop) => stop.stopPointId == this.journey.stopId);
+        stops.indexWhere((stop) => stop.stopPointId == widget.journey.stopId);
     if (stopIndex == -1) {
       stopIndex = 0;
     }
@@ -86,7 +85,7 @@ class _JourneyPageState extends State<JourneyPage> {
             controller: this._scrollController,
             itemBuilder: (context, index) {
               final stop = stops[index];
-              var isActive = stop.stopPointId == this.journey.stopId;
+              var isActive = stop.stopPointId == widget.journey.stopId;
               var time = '';
               var depTime = stop.departureTime;
               if (depTime != null) {
@@ -125,7 +124,7 @@ class _JourneyPageState extends State<JourneyPage> {
           systemOverlayStyle: lum < 0.7
               ? SystemUiOverlayStyle.light
               : SystemUiOverlayStyle.dark,
-          iconTheme: IconThemeData(color: this.journey.fgColor),
+          iconTheme: IconThemeData(color: widget.journey.fgColor),
           actions: [
             IconButton(
               icon: const Icon(Icons.map),
@@ -144,8 +143,8 @@ class _JourneyPageState extends State<JourneyPage> {
                     },
             ),
           ],
-          title: Text(this.journey.shortName + ' ' + this.journey.direction,
-              style: TextStyle(color: this.journey.fgColor)),
+          title: Text(widget.journey.shortName + ' ' + widget.journey.direction,
+              style: TextStyle(color: widget.journey.fgColor)),
         ),
         body: listView);
   }

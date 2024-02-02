@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'package:vasttrafik_nara/env.dart';
 
-class Journey {
+class Deparature {
   late Map data;
   late String name;
   late String shortName;
@@ -25,27 +25,30 @@ class Journey {
     return data['serviceJourney']['gid'];
   }
 
-  Journey(Map data) {
+  Deparature(Map data) {
     var service = data['serviceJourney'];
-    var line = data['serviceJourney']['line'];
-    var stopPoint = data['stopPoint'];
-    name = line['name'];
-    shortName = line['shortName'];
     direction = service['direction'];
     if (direction.contains(', Påstigning fram')) {
       direction = direction.replaceAll(', Påstigning fram', '');
     }
 
+    var line = service['line'];
+    name = line['name'];
+    shortName = line['shortName'];
+    bgColor = _hexColor(line['backgroundColor']);
+    fgColor = _hexColor(line['foregroundColor']);
+
     var planned = data['plannedTime'];
     var estimated = data['estimatedTime'] ?? planned;
     plannedTime = parseVasttrafikDate(planned);
     estimatedTime = parseVasttrafikDate(estimated);
-    bgColor = _hexColor(line['backgroundColor']);
-    fgColor = _hexColor(line['foregroundColor']);
 
     journeyRefId = data['detailsReference'];
+
+    var stopPoint = data['stopPoint'];
     stopId = stopPoint['gid'];
     track = stopPoint['platform'];
+
     this.data = data;
   }
 }
@@ -326,14 +329,14 @@ class VasttrafikApi {
     return JourneyDetail(map, list);
   }
 
-  Future<List<Journey>> getDepartures(String stopId) async {
+  Future<List<Deparature>> getDepartures(String stopId) async {
     String path = "/stop-areas/${stopId}/departures";
     String queryString = "?maxDeparturesPerLineAndDirection=10&limit=20";
     String url = basePlaneraResaApi + path + queryString;
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
-    return List<Journey>.from(map['results'].map((it) => Journey(it)));
+    return List<Deparature>.from(map['results'].map((it) => Deparature(it)));
   }
 
   _callApi(String url, [bool forceNormal = false]) async {
