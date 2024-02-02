@@ -78,7 +78,7 @@ class _StopPageState extends State<StopPage> {
           style: subTextStyle.copyWith(
               decoration: TextDecoration.lineThrough,
               decorationColor: subTextStyle.color!.withOpacity(0.8),
-              decorationThickness: 3)));
+              decorationThickness: 2)));
     }
     subtitleComponents.add(Text(
         formatDepartureTime(journey.estimatedTime, false),
