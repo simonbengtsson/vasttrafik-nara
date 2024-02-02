@@ -10,7 +10,7 @@ import 'package:vasttrafik_nara/journey_page.dart';
 import 'package:vasttrafik_nara/models.dart';
 
 class StopMapPage extends StatefulWidget {
-  final Stop stop;
+  final StopArea stop;
 
   const StopMapPage({super.key, required this.stop});
 
@@ -74,6 +74,7 @@ class _MapPageState extends State<StopMapPage> {
   }
 
   Widget buildOpenStreetMap() {
+    final stopPoints = stopDetail?.stopPoints ?? [];
     return FlutterMap(
       mapController: mapController,
       options: MapOptions(
@@ -87,7 +88,7 @@ class _MapPageState extends State<StopMapPage> {
         ),
         MarkerLayer(
           markers: [
-            ...(stopDetail?.stopPoints ?? []).asMap().entries.map((point) {
+            ...stopPoints.asMap().entries.map((point) {
               return Marker(
                 rotate: true,
                 point: LatLng(point.value.lat, point.value.lon),
@@ -112,38 +113,18 @@ class _MapPageState extends State<StopMapPage> {
         CurrentLocationLayer(),
         for (var vehiclePosition in vehiclePositions)
           AnimatedLocationMarkerLayer(
-            key: ValueKey(vehiclePosition.detailsReference),
+            key: ValueKey(vehiclePosition.journeyRef),
             style: LocationMarkerStyle(
               markerSize: Size(30, 30),
               marker: InkWell(
                 onTap: () async {
-                  var journey = await vasttrafikApi.getJourneyDetails(
-                      '', vehiclePosition.detailsReference);
-                  var stops = journey.stops
-                      .where((it) =>
-                          it.departureTime != null &&
-                          it.departureTime!.isAfter(DateTime.now()))
-                      .toList();
-                  stops.sort(
-                      (a, b) => a.departureTime!.compareTo(b.departureTime!));
-                  var nextStopId = stops.first.stop.id;
-                  var departures =
-                      await vasttrafikApi.getDepartures(nextStopId);
-                  var depart = departures
-                      .where((it) =>
-                          it.journeyRefId == vehiclePosition.detailsReference)
-                      .toList()
-                      .firstOrNull;
-                  if (depart == null) {
-                    print('Why sometimes null here? Last stop?');
-                    return;
-                  }
-                  // Find next stop point and its area
-                  // Fetch departures and find for this line
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => JourneyPage(depart)),
+                        builder: (context) => JourneyPage(
+                            vehiclePosition.line,
+                            vehiclePosition.lineDirection,
+                            vehiclePosition.journeyRef)),
                   );
                 },
                 child: Container(
@@ -192,9 +173,19 @@ class _MapPageState extends State<StopMapPage> {
                     ),
                     ElevatedButton(
                       onPressed: () async {
-                        if (stopDetail != null) {
+                        if (stopPoints.isNotEmpty) {
+                          final coords = stopPoints
+                              .map((e) => LatLng(e.lat, e.lon))
+                              .toList();
+                          mapController.fitCamera(
+                            CameraFit.coordinates(
+                                padding: EdgeInsets.all(40),
+                                coordinates: coords,
+                                minZoom: 16),
+                          );
+                        } else {
                           mapController.move(
-                              LatLng(stopDetail!.lat, stopDetail!.lon), 17);
+                              LatLng(widget.stop.lat, widget.stop.lon), 16);
                         }
                       },
                       child: const Icon(

@@ -8,9 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class JourneyPage extends StatefulWidget {
-  final Deparature journey;
+  final Line line;
+  final String lineDirection;
+  final String journeyRef;
 
-  JourneyPage(this.journey);
+  JourneyPage(this.line, this.lineDirection, this.journeyRef);
 
   @override
   createState() => _JourneyPageState();
@@ -21,21 +23,19 @@ class _JourneyPageState extends State<JourneyPage> {
   JourneyDetail? journeyDetail;
   ScrollController? _scrollController;
   bool loading = true;
+  StopArea? nextStop;
 
   _JourneyPageState();
 
   @override
   initState() {
     super.initState();
-    fetchInformationItems().catchError((error) {
-      print('Error fetching information: $error');
-    });
     fetchData().then((item) {
       trackEvent('Page Shown', {
         'Page Name': 'Journey',
-        'Journey Name': widget.journey.name,
-        'Journey Direction': widget.journey.direction,
-        'Journey Id': widget.journey.journeyRefId,
+        'Journey Name': widget.line.name,
+        //'Journey Direction': widget.line.direction,
+        'Journey Id': widget.journeyRef,
         'Shown Stop Count': item.length
       });
     }).catchError((error) {
@@ -43,29 +43,39 @@ class _JourneyPageState extends State<JourneyPage> {
     });
   }
 
-  fetchInformationItems() async {
-    final info =
-        await vasttrafikApi.getJourneyInformation(widget.journey.lineId);
-    if (this.mounted) {
-      this.setState(() {
-        this.informationItems = info;
-      });
+  fetchInformationItems(JourneyDetail detail) async {
+    if (widget.line.id != null) {
+      final info = await vasttrafikApi.getJourneyInformation(widget.line.id!);
+      if (this.mounted) {
+        this.setState(() {
+          this.informationItems = info;
+        });
+      }
     }
   }
 
   Future<List<JourneyStop>> fetchData() async {
-    var ref = widget.journey.journeyRefId;
-    var detail =
-        await vasttrafikApi.getJourneyDetails(widget.journey.stopId, ref);
+    // Page opened from clicking a vehicle on map etc so we
+    // find the next stop instead of using the one
+    var detail = await vasttrafikApi.getJourneyDetails(widget.journeyRef);
+    fetchInformationItems(detail).catchError((error) {
+      print('Error fetching information: $error');
+    });
+    var stops = detail.stops
+        .where((it) => it.departureTime.isAfter(DateTime.now()))
+        .toList();
+    stops.sort((a, b) => a.departureTime!.compareTo(b.departureTime));
+    var nextStop = stops.firstOrNull?.stopArea ?? detail.stops.last.stopArea;
 
     if (this.mounted) {
       this.setState(() {
         this.journeyDetail = detail;
+        this.nextStop = nextStop;
         this.loading = false;
       });
     }
 
-    return journeyDetail!.stops;
+    return detail.stops;
   }
 
   hexColor(hexStr) {
@@ -76,17 +86,21 @@ class _JourneyPageState extends State<JourneyPage> {
 
   @override
   Widget build(BuildContext context) {
-    Color bgColor = convertHexToColor(widget.journey.bgColor);
+    Color bgColor = convertHexToColor(widget.line.bgColor);
     var lum = bgColor.computeLuminance();
 
     final stops = this.journeyDetail?.stops ?? [];
-    var stopIndex =
-        stops.indexWhere((stop) => stop.stopPointId == widget.journey.stopId);
-    if (stopIndex == -1) {
-      stopIndex = 0;
+
+    var nextStopIndex = stops.indexWhere((element) =>
+        element.departureTime != null &&
+        element.departureTime!.isAfter(DateTime.now()));
+
+    if (_scrollController == null) {
+      if (nextStopIndex != -1) {
+        _scrollController =
+            ScrollController(initialScrollOffset: nextStopIndex * 56.0);
+      }
     }
-    this._scrollController =
-        ScrollController(initialScrollOffset: stopIndex * 56.0);
 
     var loader = Padding(
         padding: EdgeInsets.all(20.0),
@@ -102,7 +116,8 @@ class _JourneyPageState extends State<JourneyPage> {
             controller: this._scrollController,
             itemBuilder: (context, index) {
               final stop = stops[index];
-              var isActive = stop.stopPointId == widget.journey.stopId;
+              var isRemainingStop =
+                  stop.departureTime?.isAfter(DateTime.now()) ?? false;
               var time = '';
               var depTime = stop.departureTime;
               if (depTime != null) {
@@ -110,13 +125,14 @@ class _JourneyPageState extends State<JourneyPage> {
               }
               var style = TextStyle(
                 fontSize: 18.0,
-                color: isActive
+                color: isRemainingStop
                     ? Theme.of(context).colorScheme.onBackground
                     : Theme.of(context)
                         .colorScheme
                         .onBackground
-                        .withOpacity(index < stopIndex ? 0.3 : 0.8),
-                fontWeight: isActive ? FontWeight.w900 : FontWeight.w500,
+                        .withOpacity(0.3),
+                fontWeight:
+                    index == nextStopIndex ? FontWeight.w900 : FontWeight.w500,
               );
 
               return Container(
@@ -125,24 +141,26 @@ class _JourneyPageState extends State<JourneyPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => StopPage(stop: stop.stop),
+                      builder: (context) => StopPage(stop: stop.stopArea),
                     ),
                   );
                 },
-                selected: isActive,
-                title: Text(stop.stop.name, style: style),
+                selected: isRemainingStop,
+                title: Text(stop.stopArea.name, style: style),
                 trailing: Text(time, style: style),
               ));
             });
 
     return Scaffold(
         appBar: AppBar(
+          title: Text(widget.line.name + ' ' + widget.lineDirection,
+              style: TextStyle(color: convertHexToColor(widget.line.fgColor))),
           backgroundColor: bgColor,
           systemOverlayStyle: lum < 0.7
               ? SystemUiOverlayStyle.light
               : SystemUiOverlayStyle.dark,
           iconTheme:
-              IconThemeData(color: convertHexToColor(widget.journey.fgColor)),
+              IconThemeData(color: convertHexToColor(widget.line.fgColor)),
           actions: [
             if (informationItems.isNotEmpty)
               IconButton(
@@ -169,16 +187,14 @@ class _JourneyPageState extends State<JourneyPage> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => MapPage(
-                              journey: widget.journey,
+                              line: widget.line,
+                              lineDirection: widget.lineDirection,
                               detail: this.journeyDetail!),
                         ),
                       );
                     },
             ),
           ],
-          title: Text(widget.journey.shortName + ' ' + widget.journey.direction,
-              style:
-                  TextStyle(color: convertHexToColor(widget.journey.fgColor))),
         ),
         body: listView);
   }

@@ -18,14 +18,15 @@ class VasttrafikApi {
 
   VasttrafikApi(this.clientId, this.clientSecret);
 
-  Future<List<Stop>> search(query) async {
+  Future<List<StopArea>> search(query) async {
     String path = "/locations/by-text";
     String queryString = "?q=$query&types=stoparea";
     String url = basePlaneraResaApi + path + queryString;
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
-    return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
+    return List<StopArea>.from(
+        map['results'].map((it) => StopArea(it)).toList());
   }
 
   Future<StopAreaDetail> stopAreaDetail(String stopAreaId) async {
@@ -80,7 +81,7 @@ class VasttrafikApi {
     return map.isEmpty ? null : LivePosition(map[0]);
   }
 
-  Future<List<Stop>> getNearby(Coordinate latLng) async {
+  Future<List<StopArea>> getNearby(Coordinate latLng) async {
     String path = "/locations/by-coordinates";
     String queryString =
         "?latitude=${latLng.latitude}&longitude=${latLng.longitude}&limit=500&types=stoparea";
@@ -88,7 +89,8 @@ class VasttrafikApi {
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
-    return List<Stop>.from(map['results'].map((it) => Stop(it)).toList());
+    return List<StopArea>.from(
+        map['results'].map((it) => StopArea(it)).toList());
   }
 
   Future<JourneyDetail> getJourneyDetails2(
@@ -99,21 +101,17 @@ class VasttrafikApi {
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
-    var list = List<JourneyStop>.from(
-        map['tripLegs'][0]['callsOnTripLeg'].map((it) => JourneyStop(it)));
-    return JourneyDetail(map, list);
+    return JourneyDetail(map);
   }
 
-  Future<JourneyDetail> getJourneyDetails(String stopAreaId, String ref) async {
+  Future<JourneyDetail> getJourneyDetails(String ref) async {
     //String url2 = basePlaneraResaApi + '/stop-areas/$stopAreaId/departures/$ref/details';
     String url = basePlaneraResaApi +
         '/journeys/${ref}/details?includes=servicejourneycoordinates';
     var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
-    var list = List<JourneyStop>.from(
-        map['tripLegs'][0]['callsOnTripLeg'].map((it) => JourneyStop(it)));
-    return JourneyDetail(map, list);
+    return JourneyDetail(map);
   }
 
   Future<List<Deparature>> getDepartures(String stopId) async {

@@ -8,12 +8,18 @@ import 'package:latlong2/latlong.dart';
 import 'package:vasttrafik_nara/common.dart';
 import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/models.dart';
+import 'package:vasttrafik_nara/stop_page.dart';
 
 class MapPage extends StatefulWidget {
-  final Deparature journey;
+  final Line line;
   final JourneyDetail detail;
+  final String lineDirection;
 
-  const MapPage({super.key, required this.journey, required this.detail});
+  const MapPage(
+      {super.key,
+      required this.line,
+      required this.lineDirection,
+      required this.detail});
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -56,15 +62,14 @@ class _MapPageState extends State<MapPage> {
     //   widget.stops.map((e) => e.stop.lon).reduce((a, b) => a > b ? a : b),
     // );
     if (Env.useAltCredentials) {
-      final pos =
-          await vasttrafikApi.vehiclePosition(widget.journey.journeyGid);
+      final pos = await vasttrafikApi.vehiclePosition(widget.detail.journeyGid);
       if (this.mounted) {
         this.setState(() {
           this.vehiclePosition = pos;
         });
       }
     } else {
-      final res = await vasttrafikApi.getVehicles(widget.journey.journeyRefId);
+      final res = await vasttrafikApi.getVehicles(widget.detail.journeyRef);
       if (this.mounted) {
         this.setState(() {
           this.vehiclePosition = res;
@@ -74,8 +79,9 @@ class _MapPageState extends State<MapPage> {
   }
 
   Widget buildOpenStreetMap() {
-    final stopCoords =
-        widget.detail.stops.map((e) => LatLng(e.stop.lat, e.stop.lon)).toList();
+    final stopCoords = widget.detail.stops
+        .map((e) => LatLng(e.stopArea.lat, e.stopArea.lon))
+        .toList();
     final journeyCoords = widget.detail.coordinates
         .map((e) => LatLng(e.latitude, e.longitude))
         .toList();
@@ -100,24 +106,36 @@ class _MapPageState extends State<MapPage> {
             Polyline(
               strokeWidth: 7,
               points: journeyCoords,
-              color: convertHexToColor(widget.journey.bgColor),
+              color: convertHexToColor(widget.line.bgColor),
             ),
           ],
         ),
         MarkerLayer(
           markers: [
             ...stopCoords.asMap().entries.map((it) {
+              final stop = widget.detail.stops[it.key];
               final isLastOrFirst =
                   it.key == stopCoords.length - 1 || it.key == 0;
               return Marker(
                 point: it.value,
-                height: isLastOrFirst ? 12 : 7,
-                width: isLastOrFirst ? 12 : 7,
-                child: Tooltip(
-                  message: widget.detail.stops[it.key].stop.name,
+                height: 12,
+                width: 12,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => StopPage(stop: stop.stopArea),
+                      ),
+                    );
+                  },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: convertHexToColor(widget.journey.fgColor),
+                      border: Border.all(
+                        color: convertHexToColor(widget.line.bgColor),
+                        width: 2,
+                      ),
+                      color: convertHexToColor(widget.line.fgColor),
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -133,16 +151,16 @@ class _MapPageState extends State<MapPage> {
                 markerSize: Size(30, 30),
                 marker: Container(
                   decoration: BoxDecoration(
-                    color: convertHexToColor(widget.journey.bgColor),
+                    color: convertHexToColor(widget.line.bgColor),
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: isRecent
                       ? Icon(
                           Icons.train,
-                          color: convertHexToColor(widget.journey.fgColor),
+                          color: convertHexToColor(widget.line.fgColor),
                         )
                       : CupertinoActivityIndicator(
-                          color: convertHexToColor(widget.journey.fgColor),
+                          color: convertHexToColor(widget.line.fgColor),
                         ),
                 ),
               ),
@@ -184,6 +202,18 @@ class _MapPageState extends State<MapPage> {
                         Icons.polyline,
                       ),
                     ),
+                    if (vehiclePosition != null)
+                      ElevatedButton(
+                        onPressed: () async {
+                          mapController.move(
+                              LatLng(
+                                  vehiclePosition!.lat, vehiclePosition!.lon),
+                              16);
+                        },
+                        child: const Icon(
+                          Icons.train,
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -199,7 +229,7 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.journey.shortName + ' ' + widget.journey.direction,
+          widget.line.name + ' ' + widget.lineDirection,
         ),
       ),
       body: buildOpenStreetMap(),

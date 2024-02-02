@@ -9,7 +9,7 @@ import 'package:vasttrafik_nara/stop_map_page.dart';
 class StopPage extends StatefulWidget {
   StopPage({Key? key, required this.stop}) : super(key: key);
 
-  final Stop stop;
+  final StopArea stop;
 
   @override
   _StopPageState createState() => _StopPageState();
@@ -58,33 +58,33 @@ class _StopPageState extends State<StopPage> {
     return journeys;
   }
 
-  Widget buildItem(Deparature journey) {
+  Widget buildItem(Deparature departure) {
     List<Widget> subtitleComponents = [];
-    var directionName = journey.direction;
+    var directionName = departure.direction;
     final viaIndex = directionName.indexOf(' via ');
     var textStyle = TextStyle(
-        color: convertHexToColor(journey.fgColor),
+        color: convertHexToColor(departure.fgColor),
         fontSize: 18.0,
         fontWeight: FontWeight.bold);
     final subTextStyle = TextStyle(color: textStyle.color);
-    if (journey.track != null) {
-      subtitleComponents.add(Text(journey.track!, style: subTextStyle));
+    if (departure.track != null) {
+      subtitleComponents.add(Text(departure.track!, style: subTextStyle));
     }
     final isDelayed =
-        !journey.estimatedTime.isAtSameMomentAs(journey.plannedTime);
+        !departure.estimatedTime.isAtSameMomentAs(departure.plannedTime);
     if (isDelayed) {
       subtitleComponents.add(Text(
-          formatDepartureTime(journey.plannedTime, false),
+          formatDepartureTime(departure.plannedTime, false),
           style: subTextStyle.copyWith(
               decoration: TextDecoration.lineThrough,
               decorationColor: subTextStyle.color!.withOpacity(0.8),
               decorationThickness: 2)));
     }
     subtitleComponents.add(Text(
-        formatDepartureTime(journey.estimatedTime, false),
+        formatDepartureTime(departure.estimatedTime, false),
         style: subTextStyle));
 
-    if (journey.isCancelled) {
+    if (departure.isCancelled) {
       subtitleComponents.add(Text('Cancelled',
           style: subTextStyle.copyWith(
               color: Colors.red, backgroundColor: Colors.white)));
@@ -98,25 +98,27 @@ class _StopPageState extends State<StopPage> {
 
     return Container(
         decoration: BoxDecoration(
-          color: convertHexToColor(journey.bgColor),
+          color: convertHexToColor(departure.bgColor),
         ),
         child: ListTile(
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => JourneyPage(journey)),
+              MaterialPageRoute(
+                  builder: (context) => JourneyPage(departure.line,
+                      departure.direction, departure.journeyRefId)),
             );
           },
           leading: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [Text(journey.shortName, style: textStyle)],
+            children: [Text(departure.shortName, style: textStyle)],
           ),
           minLeadingWidth: 60,
           title: Text(directionName, style: textStyle),
           subtitle: Wrap(spacing: 5, children: [
             for (var it in subtitleComponents) it,
           ]),
-          trailing: Text(formatDepartureTime(journey.estimatedTime, true),
+          trailing: Text(formatDepartureTime(departure.estimatedTime, true),
               style: textStyle),
         ));
   }

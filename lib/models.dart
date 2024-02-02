@@ -46,12 +46,12 @@ class Deparature {
   late DateTime estimatedTime;
   late String bgColor;
   late String fgColor;
-  late Stop nextStop;
+  late StopArea nextStop;
   late String stopId;
   late String journeyRefId;
 
-  String get lineId {
-    return data['serviceJourney']['line']['gid'];
+  Line get line {
+    return Line(data['serviceJourney']['line']);
   }
 
   bool get isCancelled {
@@ -90,14 +90,14 @@ class Deparature {
   }
 }
 
-class Stop {
+class StopArea {
   late Map data;
   late String id;
   late double lat;
   late double lon;
   late String name;
 
-  Stop(Map data) {
+  StopArea(Map data) {
     name = data['name'];
     if (name.contains(', Göteborg')) {
       name = name.replaceAll(', Göteborg', '');
@@ -111,7 +111,29 @@ class Stop {
 
 class JourneyDetail {
   Map data;
-  List<JourneyStop> stops;
+
+  List<JourneyStop> get stops {
+    final calls = data['tripLegs'][0]['callsOnTripLeg'].where((it) {
+      // There was some duplicate stops without time and platform etc
+      var time = it['plannedDepartureTime'] ??
+          it['estimatedArrivalTime'] ??
+          it['plannedArrivalTime'] ??
+          it['estimatedArrivalTime'];
+      if (time == null) {
+        print('No time ${it['stopPoint']['name']}');
+      }
+      return time != null;
+    });
+    return List<JourneyStop>.from(calls.map((it) => JourneyStop(it)));
+  }
+
+  String get journeyRef {
+    return data['tripLegs'][0]['serviceJourneys'][0]['ref'];
+  }
+
+  String get journeyGid {
+    return data['tripLegs'][0]['serviceJourneys'][0]['gid'];
+  }
 
   List<Coordinate> get coordinates {
     final coords = data['tripLegs'][0]['serviceJourneys'][0]
@@ -121,22 +143,25 @@ class JourneyDetail {
         coords.map((it) => Coordinate(it['latitude'], it['longitude'])));
   }
 
-  JourneyDetail(this.data, this.stops);
+  JourneyDetail(this.data);
 }
 
 class JourneyStop {
-  late DateTime? departureTime;
+  late DateTime departureTime;
   late String platform;
   late String stopPointId;
-  late Stop stop;
+  late StopArea stopArea;
 
   JourneyStop(Map data) {
-    // Arrival time is used for last stop
-    var time = data['plannedDepartureTime'] ?? data['estimatedArrivalTime'];
+    // Arrival time useful if last stop on journey since there is no departure times for those
+    var time = data['estimatedDepartureTime'] ??
+        data['plannedDepartureTime'] ??
+        data['estimatedArrivalTime'] ??
+        data['plannedArrivalTime'];
     departureTime = time != null ? parseVasttrafikDate(time) : null;
-    platform = data['plannedPlatform'];
+    platform = data['plannedPlatform'] ?? null;
     stopPointId = data['stopPoint']['gid'];
-    stop = Stop(data['stopPoint']['stopArea']);
+    stopArea = StopArea(data['stopPoint']['stopArea']);
   }
 }
 
@@ -189,16 +214,22 @@ class Coordinate {
 class Line {
   late Map data;
   late String name;
+  late String shortName;
   late String bgColor;
   late String fgColor;
   late String transportMode;
 
   Line(Map data) {
-    name = data['name'];
-    bgColor = data['line']['backgroundColor'];
-    fgColor = data['line']['foregroundColor'];
+    name = data['shortName'] ?? data['name'];
+    bgColor = data['backgroundColor'];
+    fgColor = data['foregroundColor'];
     transportMode = data['transportMode'];
     this.data = data;
+  }
+
+  String? get id {
+    // Gid not returned when line obtained from geo api
+    return data['gid'];
   }
 }
 
@@ -208,7 +239,11 @@ class LivePosition {
   late double lon;
   late DateTime updatedAt;
 
-  String get detailsReference {
+  Line get line {
+    return Line(data['line']);
+  }
+
+  String get journeyRef {
     return data['detailsReference'];
   }
 
@@ -221,7 +256,7 @@ class LivePosition {
   }
 
   String get lineName {
-    return data['line']?['name'] ?? '-';
+    return data['line']['name'] ?? '-';
   }
 
   LivePosition(Map data) {
@@ -229,6 +264,10 @@ class LivePosition {
     lon = data['longitude'] ?? data['long'];
     updatedAt = DateTime.now();
     this.data = data;
+  }
+
+  String get lineDirection {
+    return data['line']['direction'];
   }
 }
 

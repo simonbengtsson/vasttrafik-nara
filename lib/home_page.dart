@@ -18,7 +18,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var fetchComplete = false;
-  List<Stop> nearbyStops = [];
+  List<StopArea> nearbyStops = [];
   var isSearching = false;
   Position? currentLocation;
 
@@ -35,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<(List<Stop>?, Position?, double?)> fetchData() async {
+  Future<(List<StopArea>?, Position?, double?)> fetchData() async {
     Future? authPromise;
     if (vasttrafikApi.authToken == null) {
       authPromise = Future.wait(
@@ -66,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
         'Thrown Stack': stack.toString(),
       });
     }
-    List<Stop>? stops;
+    List<StopArea>? stops;
     try {
       var currentLocation = this.currentLocation == null
           ? gothenburgLocation
@@ -226,7 +226,7 @@ const List<Choice> choices = const <Choice>[
 ];
 
 class StopHeadingItem {
-  final Stop stop;
+  final StopArea stop;
   final BuildContext context;
   final Position? currentLocation;
 
