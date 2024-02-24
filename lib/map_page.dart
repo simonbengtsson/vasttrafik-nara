@@ -114,8 +114,6 @@ class _MapPageState extends State<MapPage> {
           markers: [
             ...stopCoords.asMap().entries.map((it) {
               final stop = widget.detail.stops[it.key];
-              final isLastOrFirst =
-                  it.key == stopCoords.length - 1 || it.key == 0;
               return Marker(
                 point: it.value,
                 height: 12,

@@ -64,7 +64,7 @@ class _JourneyPageState extends State<JourneyPage> {
     var stops = detail.stops
         .where((it) => it.departureTime.isAfter(DateTime.now()))
         .toList();
-    stops.sort((a, b) => a.departureTime!.compareTo(b.departureTime));
+    stops.sort((a, b) => a.departureTime.compareTo(b.departureTime));
     var nextStop = stops.firstOrNull?.stopArea ?? detail.stops.last.stopArea;
 
     if (this.mounted) {
@@ -91,9 +91,8 @@ class _JourneyPageState extends State<JourneyPage> {
 
     final stops = this.journeyDetail?.stops ?? [];
 
-    var nextStopIndex = stops.indexWhere((element) =>
-        element.departureTime != null &&
-        element.departureTime!.isAfter(DateTime.now()));
+    var nextStopIndex = stops
+        .indexWhere((element) => element.departureTime.isAfter(DateTime.now()));
 
     if (_scrollController == null) {
       if (nextStopIndex != -1) {
@@ -116,13 +115,10 @@ class _JourneyPageState extends State<JourneyPage> {
             controller: this._scrollController,
             itemBuilder: (context, index) {
               final stop = stops[index];
-              var isRemainingStop =
-                  stop.departureTime?.isAfter(DateTime.now()) ?? false;
+              var isRemainingStop = stop.departureTime.isAfter(DateTime.now());
               var time = '';
               var depTime = stop.departureTime;
-              if (depTime != null) {
-                time = formatDepartureTime(depTime, false);
-              }
+              time = formatDepartureTime(depTime, false);
               var style = TextStyle(
                 fontSize: 18.0,
                 color: isRemainingStop
