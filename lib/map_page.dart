@@ -62,14 +62,16 @@ class _MapPageState extends State<MapPage> {
     //   widget.stops.map((e) => e.stop.lon).reduce((a, b) => a > b ? a : b),
     // );
     if (Env.useAltCredentials) {
-      final pos = await vasttrafikApi.vehiclePosition(widget.detail.journeyGid);
+      final pos = await vasttrafikApi
+          .getRealtimeVehiclePosition(widget.detail.journeyGid);
       if (this.mounted) {
         this.setState(() {
           this.vehiclePosition = pos;
         });
       }
     } else {
-      final res = await vasttrafikApi.getVehicles(widget.detail.journeyRef);
+      final res =
+          await vasttrafikApi.getVehiclePosition(widget.detail.journeyRef);
       if (this.mounted) {
         this.setState(() {
           this.vehiclePosition = res;

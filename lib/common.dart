@@ -4,14 +4,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:vasttrafik_nara/env.dart';
 import 'package:vasttrafik_nara/vasttrafik.dart';
 
-final vasttrafikApi = VasttrafikApi(
-    Env.useAltCredentials ? Env.vasttrafikClientIdAlt : Env.vasttrafikClientId,
-    Env.useAltCredentials
-        ? Env.vasttrafikClientSecretAlt
-        : Env.vasttrafikClientSecret);
+final vasttrafikApi = VasttrafikApi();
 late Mixpanel mixpanelInstance;
 
 initMixpanel() async {

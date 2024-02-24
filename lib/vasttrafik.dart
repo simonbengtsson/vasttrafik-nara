@@ -6,17 +6,14 @@ import 'package:vasttrafik_nara/models.dart';
 class VasttrafikApi {
   String? authToken;
   String? authTokenAlt;
-  String clientId;
-  String clientSecret;
 
-  String basePlaneraResaApi =
-      "https://ext-api.vasttrafik.se/pr/v4${Env.useAltCredentials ? '-int' : ''}";
+  String basePlaneraResaApi = "https://ext-api.vasttrafik.se/pr/v4";
+  String basePlaneraResaApiInternal =
+      "https://ext-api.vasttrafik.se/pr/v4-int'";
   String baseGeoApi = "https://ext-api.vasttrafik.se/geo/v2";
   String baseInformationApi = "https://ext-api.vasttrafik.se/ts/v1";
   String baseFposApi =
       "https://ext-api.vasttrafik.se/fpos/v1"; // Only supported with alt credentials
-
-  VasttrafikApi(this.clientId, this.clientSecret);
 
   Future<List<StopArea>> search(query) async {
     String path = "/locations/by-text";
@@ -33,18 +30,18 @@ class VasttrafikApi {
     String path =
         "/StopAreas/$stopAreaId?includeStopPoints=true&includeGeometry=true&srid=4326";
     String url = baseGeoApi + path;
-    var res = await _callApi(url, true);
+    var res = await _callApi(url);
     var json = res.body;
     var map = jsonDecode(json);
     return StopAreaDetail(map['stopArea']);
   }
 
-// Potentially more exact? Need verification but when tried on testflight the bus got ahead of actual position.
-// Does not seem to happen with the internal api
-  Future<LivePositionInternal?> vehiclePosition(String journeyId) async {
-    String path = "/positions/${journeyId}";
-    String url = baseFposApi + path;
-    var res = await _callApi(url);
+  Future<LivePositionInternal?> getRealtimeVehiclePosition(
+      String journeyId) async {
+    // Realtime. Not available unless used with internal credentials found in
+    // togo app.
+    String url = "${baseFposApi}/positions/${journeyId}";
+    var res = await _callApi(url, true);
     var json = res.body;
     var map = jsonDecode(json);
     if (map['status'] == 404) {
@@ -64,9 +61,9 @@ class VasttrafikApi {
     return List<LivePosition>.from(map.map((it) => LivePosition(it)));
   }
 
-  Future<LivePosition?> getVehicles(String journeyRefId) async {
-    if (Env.useAltCredentials) {
-      return await vehiclePosition(journeyRefId);
+  Future<LivePosition?> getVehiclePosition(String journeyRefId) async {
+    if (authTokenAlt != null) {
+      return await getRealtimeVehiclePosition(journeyRefId);
     }
     final highestValidLatitude = 90;
     final lowestValidLatitude = -90;
@@ -124,13 +121,16 @@ class VasttrafikApi {
     return List<Deparature>.from(map['results'].map((it) => Deparature(it)));
   }
 
-  _callApi(String url, [bool forceNormal = false]) async {
+  _callApi(String url, [bool altInternal = false]) async {
     Uri uri = Uri.parse(url);
-    var token = Env.useAltCredentials ? authTokenAlt : authToken;
-    if (forceNormal) {
-      token = authToken;
-    }
-    return http.get(uri, headers: {'Authorization': "Bearer ${token!}"});
+    var token = altInternal ? authTokenAlt : authToken;
+    var result = http.get(uri, headers: {'Authorization': "Bearer ${token!}"});
+    return result;
+  }
+
+  Future authorizeAll() async {
+    await authorize(false);
+    await authorize(true);
   }
 
   Future authorize(bool alt) async {
@@ -145,6 +145,11 @@ class VasttrafikApi {
           'grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}',
     );
 
+    if (res.statusCode != 200) {
+      print(res);
+      throw Exception('Failed to authorize. Internal? ${alt}');
+    }
+
     var json = jsonDecode(res.body);
     if (alt) {
       authTokenAlt = json['access_token'];
@@ -155,9 +160,8 @@ class VasttrafikApi {
 
   Future<List<Information>> getStopInformation(String stopId) async {
     var path = '/traffic-situations/stoparea/${stopId}';
-    //path = '/traffic-situations';
     var url = baseInformationApi + path;
-    var res = await _callApi(url, true);
+    var res = await _callApi(url);
     var json = jsonDecode(res.body);
     return List<Information>.from(json.map((it) => Information(it)));
   }
@@ -166,7 +170,7 @@ class VasttrafikApi {
     var path = '/traffic-situations/line/${lineId}';
     //path = '/traffic-situations';
     var url = baseInformationApi + path;
-    var res = await _callApi(url, true);
+    var res = await _callApi(url);
     var json = jsonDecode(res.body);
     return List<Information>.from(json.map((it) => Information(it)));
   }
