@@ -172,9 +172,29 @@ class _StopPageState extends State<StopPage> {
           : ListView.builder(
               itemCount: journeys.length,
               itemBuilder: (context, index) {
+                // if (index == -1) {
+                //   return FutureBuilder(
+                //       future: vasttrafikApi.getJourneyDetails(departure),
+                //       builder: (context, snapshot) {
+                //         if (snapshot.connectionState == ConnectionState.done) {
+                //           final stops = snapshot.data?.stops ?? [];
+                //           return SizedBox(
+                //               height: 50,
+                //               child: Text(
+                //                   stops.firstOrNull?.stopPointId ?? 'None'));
+                //         }
+                //         return SizedBox(
+                //             height: 50, child: Text('Directions loading...'));
+                //       });
+                // }
                 final item = journeys[index];
                 return buildItem(item);
               }),
     );
+  }
+
+  Future<String> getDirections() async {
+    await Future.delayed(Duration(milliseconds: 1000));
+    return 'Directions';
   }
 }

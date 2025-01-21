@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,7 +11,14 @@ import 'package:vasttrafik_nara/vasttrafik.dart';
 final vasttrafikApi = VasttrafikApi();
 late Mixpanel mixpanelInstance;
 
+bool isMobile() {
+  return Platform.isAndroid || Platform.isIOS;
+}
+
 initMixpanel() async {
+  if (!isMobile()) {
+    return; // Mixpanel on macos was not supported
+  }
   mixpanelInstance = await Mixpanel.init(
     "563842b985116f25ac9bfdea7b799cf8",
     trackAutomaticEvents: true,
@@ -17,6 +26,9 @@ initMixpanel() async {
 }
 
 trackEvent(String eventName, [Map<String, dynamic>? props]) {
+  if (!isMobile()) {
+    return; // Mixpanel on macos was not supported
+  }
   if (!kDebugMode) {
     mixpanelInstance.track(eventName, properties: props);
   }
