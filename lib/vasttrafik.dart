@@ -10,7 +10,7 @@ class VasttrafikApi {
   String basePlaneraResaApi = "https://ext-api.vasttrafik.se/pr/v4";
   String basePlaneraResaApiInternal =
       "https://ext-api.vasttrafik.se/pr/v4-int'";
-  String baseGeoApi = "https://ext-api.vasttrafik.se/geo/v2";
+  String baseGeoApi = "https://ext-api.vasttrafik.se/geo/v3";
   String baseInformationApi = "https://ext-api.vasttrafik.se/ts/v1";
   String baseFposApi =
       "https://ext-api.vasttrafik.se/fpos/v1"; // Only supported with alt credentials

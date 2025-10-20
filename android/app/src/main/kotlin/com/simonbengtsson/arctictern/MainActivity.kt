@@ -1,4 +1,4 @@
-package com.simonbengtsson.arcticturn
+package com.simonbengtsson.arctictern
 
 import io.flutter.embedding.android.FlutterActivity
 
