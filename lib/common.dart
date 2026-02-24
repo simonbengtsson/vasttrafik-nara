@@ -23,6 +23,7 @@ initMixpanel() async {
     "563842b985116f25ac9bfdea7b799cf8",
     trackAutomaticEvents: true,
   );
+  mixpanelInstance.setServerURL("https://api-eu.mixpanel.com");
 }
 
 trackEvent(String eventName, [Map<String, dynamic>? props]) {
